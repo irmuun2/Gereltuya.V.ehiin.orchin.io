@@ -1,1 +1,0 @@
-# Gereltuya.V.ehiin.orchin.io
