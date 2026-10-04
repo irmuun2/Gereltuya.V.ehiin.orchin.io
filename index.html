@@ -1,0 +1,833 @@
+<!doctype html>
+<html lang="mn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Эхийн орчныг өөрчлөн бичье</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Noto+Sans:wght@400;600;800&display=swap">
+<style>
+:root{
+  --wood:#7a5230;--wood-d:#4f331b;--wood-l:#a1724a;
+  --brass:#c9973a;--brass-l:#f3d58a;--brass-d:#8a6420;
+  --paper:#fffdf7;--ink:#2a2733;--muted:#6e6878;--line:#eadfc8;
+  --sky1:#8fc1ee;--sky2:#ffd2a8;--h1:#a6dc7a;--h2:#7cc456;--h3:#5aa83f;
+  --ct:#2f6fdc;--cp:#1f9a4b;--cw:#0e93a8;--cd:#8b3fd6;--cs:#d63384;--cc:#e07b00;--cto:#a0522d;--cta:#dc2626;
+  --ok:#1f9a4b;--no:#d9363e;
+  --shadow:0 10px 26px rgba(40,30,10,.25);
+  --hand:"Caveat","Segoe Print",cursive;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{color:var(--ink);font-family:"Noto Sans","Segoe UI",system-ui,sans-serif;font-size:19px;line-height:1.42;overflow:hidden;
+  background-color:#9cc8ee;background-image:linear-gradient(180deg,var(--sky1),var(--sky2))}
+button{font:inherit;cursor:pointer;color:inherit}
+.hills{position:fixed;left:0;right:0;bottom:0;height:38vh;z-index:0;pointer-events:none}
+.hills svg{width:100%;height:100%;display:block}
+
+/* ===== Header: window lintel ===== */
+.top{position:fixed;inset:0 0 auto 0;height:62px;display:flex;align-items:center;gap:14px;padding:0 14px;z-index:20;color:#fff;
+  background:linear-gradient(180deg,var(--wood-l),var(--wood) 45%,var(--wood-d));border-bottom:4px solid var(--brass)}
+.top .subj{font-weight:800;font-size:17px;white-space:nowrap}
+.top .stage{flex:1;min-width:0}
+.top .stage small{display:block;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--brass-l)}
+.top .stage b{display:block;font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.steps{display:flex;gap:4px}
+.steps span{font-size:13px;font-weight:600;padding:3px 8px;border-radius:20px;border:1.5px solid rgba(255,255,255,.35);color:#f2e3cc;white-space:nowrap}
+.steps span.on{background:var(--brass-l);color:var(--wood-d);border-color:var(--brass-l)}
+.steps span.done{background:rgba(255,255,255,.18)}
+.timer{font-family:var(--hand);font-size:30px;font-weight:700;color:var(--brass-l);font-variant-numeric:tabular-nums;cursor:pointer;user-select:none}
+.timer.warn{color:#ffb15c}.timer.over{color:#ff8f8f}
+.tbtn{border:1.5px solid rgba(255,255,255,.45);background:transparent;border-radius:8px;padding:3px 10px;font-weight:700;font-size:15px;color:#fff}
+.tbtn:hover{border-color:var(--brass-l);color:var(--brass-l)}
+
+/* ===== Deck ===== */
+.deck{position:absolute;inset:72px 0 66px 0;z-index:1}
+.slide{position:absolute;inset:0;overflow:auto;padding:6px clamp(16px,3vw,44px) 12px;opacity:0;visibility:hidden;transform:translateY(16px);transition:opacity .35s,transform .35s,visibility .35s}
+.slide.active{opacity:1;visibility:visible;transform:none}
+.inner{max-width:1300px;margin:0 auto}
+.plaque{display:inline-flex;align-items:center;gap:12px;background:var(--paper);border-left:8px solid var(--brass);border-radius:6px 30px 30px 6px;padding:4px 22px 4px 14px;box-shadow:var(--shadow);margin:0 0 10px}
+.plaque .tag{font-family:var(--hand);font-size:26px;color:var(--brass-d);line-height:1}
+h2{font-size:clamp(24px,2.5vw,34px);font-weight:800;margin:0;color:var(--wood-d)}
+h3{font-size:20px;margin:0 0 6px;font-weight:800;color:var(--wood-d)}
+.card{background:rgba(255,253,247,.97);border:2px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:14px 18px;position:relative}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.muted{color:var(--muted)}
+.hand{font-family:var(--hand);font-size:1.35em;line-height:1.05}
+.def{padding:8px 12px;margin:6px 0;background:#fff4dc;border-left:5px solid var(--brass);border-radius:4px}
+.def.g{background:#e7f6e9;border-color:var(--ok)}.def.b{background:#e5f0ff;border-color:var(--ct)}
+.book{display:inline-block;font-weight:700;font-size:16px;background:var(--wood);color:#fff;border-radius:6px;padding:2px 10px}
+.btn{border:none;border-radius:10px;padding:9px 16px;font-weight:700;background:var(--wood);color:#fff;box-shadow:0 4px 0 var(--wood-d);transition:transform .1s,filter .15s}
+.btn:hover{filter:brightness(1.12)}.btn:active{transform:translateY(2px);box-shadow:0 2px 0 var(--wood-d)}
+.btn[disabled]{opacity:.45;cursor:default}
+.btn.brass{background:linear-gradient(180deg,var(--brass-l),var(--brass));color:var(--wood-d);box-shadow:0 4px 0 var(--brass-d)}
+.btn.grn{background:var(--ok);box-shadow:0 4px 0 #136b33}
+.btn.ghost{background:#fff;color:var(--ink);border:2px solid var(--line);box-shadow:none}
+.btn.ghost.on{border-color:var(--brass);background:#fff4dc}
+.btn.sm{padding:6px 11px;font-size:15px}
+.feedback{font-size:18px;font-weight:700;min-height:26px;margin-top:6px}
+.feedback.ok{color:var(--ok)}.feedback.no{color:var(--no)}
+
+/* ===== Window frame motif ===== */
+.frame{position:relative;border:14px solid var(--wood);border-radius:12px;background:#000;box-shadow:var(--shadow),inset 0 0 0 3px var(--wood-d);overflow:hidden}
+.frame canvas{display:block;width:100%;height:auto;max-height:calc(100vh - 290px);object-fit:cover}
+.frame.cross::before,.frame.cross::after{content:"";position:absolute;background:var(--wood);z-index:2;pointer-events:none;box-shadow:0 0 0 2px var(--wood-d)}
+.frame.cross::before{left:50%;top:0;bottom:0;width:10px;transform:translateX(-50%)}
+.frame.cross::after{top:50%;left:0;right:0;height:10px;transform:translateY(-50%)}
+.sill{height:16px;margin:-4px -10px 0;background:linear-gradient(180deg,var(--wood-l),var(--wood-d));border-radius:4px;box-shadow:0 6px 12px rgba(0,0,0,.25);position:relative;z-index:3}
+.frame.whirr canvas{animation:whirr .6s}
+@keyframes whirr{0%{filter:blur(0)}35%{filter:blur(6px) brightness(1.3)}100%{filter:none}}
+
+/* ===== Intro ===== */
+.intro{display:grid;grid-template-columns:1.15fr .85fr;gap:28px;align-items:center;min-height:calc(100vh - 170px)}
+.sign{background:var(--paper);border-radius:16px;box-shadow:var(--shadow);padding:22px 26px;border-top:12px solid var(--brass);text-align:left}
+.sign .school{font-size:22px;font-weight:800;color:var(--wood)}
+.sign .subj{font-size:clamp(44px,5vw,66px);font-weight:800;line-height:1;color:var(--wood-d);margin:6px 0}
+.sign .chap{font-family:var(--hand);font-size:22px;color:var(--brass-d)}
+.sign .ttl{font-size:clamp(24px,2.4vw,32px);font-weight:800;line-height:1.2;color:var(--ink);margin:4px 0 12px}
+.sign .teacher{font-size:21px;font-weight:600;border-top:2px dashed var(--line);padding-top:10px}
+.flow{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.flow span{background:#fff4dc;border:1.5px solid var(--brass);border-radius:20px;padding:2px 10px;font-size:15px;font-weight:600}
+
+/* ===== Slide 2: question cards ===== */
+.qcards{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.qc{border:2px solid var(--line);background:#fff;border-radius:12px;padding:8px 10px;text-align:left;transition:.2s;min-height:70px}
+.qc b{display:block;font-size:19px}
+.qc .a{display:none;font-size:16px;color:var(--wood-d)}
+.qc.open{border-color:var(--brass);background:#fff8e6}.qc.open .a{display:block}
+.qc.wide{grid-column:1/-1}
+
+/* ===== Slide 3: reading ===== */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:2px solid var(--line);background:#fff;border-radius:20px;padding:4px 11px;font-size:16px;font-weight:600}
+.chip.on{background:var(--wood);color:#fff;border-color:var(--wood)}
+.chip.ok{border-color:var(--ok);background:#e7f6e9;color:#136b33}
+.chip.no{border-color:var(--no);background:#ffecec;color:var(--no)}
+.prow{display:grid;grid-template-columns:82px 1fr;gap:6px;align-items:center;margin:5px 0;font-weight:700;font-size:16px}
+.tl{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px}
+.tl button{border:2px solid rgba(0,0,0,.12);border-radius:10px;padding:6px 4px;font-size:14px;font-weight:700;line-height:1.15;min-height:62px;position:relative}
+.tl button.on{outline:4px solid var(--brass);outline-offset:1px}
+.tl button.seen::after{content:"✓";position:absolute;top:-8px;right:-6px;background:var(--ok);color:#fff;border-radius:50%;width:20px;height:20px;font-size:13px;line-height:20px}
+.part p{margin:4px 0 8px;font-size:18px}
+.env3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.env3 div{background:#f6efe0;border-radius:8px;padding:5px 8px;font-size:15px}
+.env3 div b{display:block;font-size:13px;color:var(--muted)}
+.vocab{display:flex;flex-wrap:wrap;gap:6px}
+.vc{border:2px dashed var(--brass);background:#fffaf0;border-radius:10px;padding:4px 10px;font-size:15px;font-weight:700;text-align:left}
+.vc span{display:none;font-weight:400}
+.vc.open{border-style:solid;flex-basis:100%}.vc.open span{display:inline}
+
+/* ===== Slide 4: word hunt ===== */
+.brushes{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.brush{border:3px solid transparent;border-radius:12px;padding:6px 12px;font-weight:800;font-size:16px;color:#fff;opacity:.75}
+.brush.on{opacity:1;border-color:#fff;outline:3px solid var(--ink);transform:translateY(-2px)}
+.b-t{background:var(--ct)}.b-p{background:var(--cp)}.b-w{background:var(--cw)}.b-d{background:var(--cd)}.b-s{background:var(--cs)}.b-c{background:var(--cc)}
+.hunt{font-size:24px;line-height:1.85;background:#fffef9;border-radius:12px;padding:12px 18px;border:2px solid var(--line);
+  background-image:repeating-linear-gradient(transparent 0 43px,#e6ecf5 43px 44px)}
+.hunt .w{cursor:pointer;border-radius:6px;padding:1px 2px;transition:.15s}
+.hunt .w:hover{background:#f1ead8}
+.hunt .w.shake{animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.k-t{background:rgba(47,111,220,.22)!important;box-shadow:inset 0 -3px var(--ct)}
+.k-p{background:rgba(31,154,75,.22)!important;box-shadow:inset 0 -3px var(--cp)}
+.k-w{background:rgba(14,147,168,.22)!important;box-shadow:inset 0 -3px var(--cw)}
+.k-d{background:rgba(139,63,214,.2)!important;box-shadow:inset 0 -3px var(--cd)}
+.k-s{background:rgba(214,51,132,.2)!important;box-shadow:inset 0 -3px var(--cs)}
+.k-c{background:rgba(224,123,0,.22)!important;box-shadow:inset 0 -3px var(--cc)}
+.score{font-family:var(--hand);font-size:34px;color:var(--wood-d)}
+
+/* ===== Slide 5: senses wheel ===== */
+.wheelbox{position:relative;width:min(330px,100%);margin:0 auto}
+.wheelbox svg{width:100%;height:auto;display:block}
+#wheelG{transition:transform 2.6s cubic-bezier(.17,.67,.2,1);transform-origin:150px 150px}
+.wheelbox .ptr{position:absolute;left:50%;top:-6px;transform:translateX(-50%);font-size:30px;z-index:2;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
+.sense{display:grid;grid-template-columns:150px 1fr;gap:8px;align-items:center;margin:6px 0;padding:5px 8px;border-radius:10px;border:2px solid transparent;transition:.2s}
+.sense.on{border-color:var(--brass);background:#fff4dc}
+.sense .nm{font-weight:800;font-size:18px}
+.sense input{font:inherit;font-size:17px;border:2px solid var(--line);border-radius:8px;padding:5px 9px;width:100%;background:#fff}
+.sense input.ok{border-color:var(--ok);background:#f1fbf3}
+.sense .q{grid-column:2;font-size:14px;color:var(--muted);margin-top:-4px}
+.sense .hint{grid-column:2;font-size:14px;color:var(--brass-d);display:none}
+.showhints .sense .hint{display:block}
+
+/* ===== Slide 6: machine ===== */
+.panel{background:linear-gradient(160deg,#e7c27a,#b98a35 55%,#8f6524);border-radius:18px;padding:12px 14px;box-shadow:var(--shadow),inset 0 2px 0 rgba(255,255,255,.5),inset 0 -3px 0 rgba(0,0,0,.25);border:3px solid var(--brass-d);position:relative}
+.panel h3{color:#3d2810;text-align:center;margin:0 0 6px;font-size:20px}
+.panel::before,.panel::after{content:"";position:absolute;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff3c4,#7a5520);top:8px}
+.panel::before{left:8px}.panel::after{right:8px}
+.dial{display:grid;grid-template-columns:62px 1fr;gap:8px;align-items:center;background:rgba(61,40,16,.18);border-radius:12px;padding:6px 8px;margin:6px 0}
+.dial svg{width:60px;height:60px;cursor:pointer}
+.dial .ptrg{transition:transform .45s cubic-bezier(.3,1.6,.5,1);transform-origin:30px 30px}
+.dial .lab{font-size:13px;font-weight:800;color:#3d2810;letter-spacing:.5px;text-transform:uppercase;grid-column:1/-1;margin-bottom:-4px}
+.dial .opts{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.dial .opts button{border:2px solid #7a5520;background:#fbecc4;border-radius:8px;padding:2px 6px;font-size:14.5px;font-weight:700;color:#3d2810;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dial .opts button.on{background:#3d2810;color:var(--brass-l)}
+.mout{background:#2c2116;color:var(--brass-l);border-radius:10px;padding:6px 10px;font-weight:700;font-size:16px;margin-top:6px;min-height:52px;box-shadow:inset 0 2px 6px rgba(0,0,0,.5)}
+.mout .warn{color:#ffb15c;display:block;font-size:14px}
+.vchips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.vchip{border:2px solid var(--brass);background:#fffaf0;border-radius:18px;padding:2px 9px;font-size:14.5px;font-weight:600;animation:pop .35s}
+.vchip.in{background:var(--brass);color:#fff}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+
+/* ===== Slide 7: editor ===== */
+.orig{font-size:17px;line-height:1.6;background:#fffef9;border:2px solid var(--line);border-radius:10px;padding:8px 12px}
+.orig span[class^="k-"]{border-radius:4px;padding:0 2px}
+.gtabs{display:flex;gap:5px;margin-bottom:6px;flex-wrap:wrap}
+.gtabs button{border:2px solid var(--line);background:#fff;border-radius:10px 10px 4px 4px;padding:3px 12px;font-weight:700;font-size:15px}
+.gtabs button.on{background:var(--wood);color:#fff;border-color:var(--wood)}
+.edwrap{position:relative;height:clamp(150px,calc(100vh - 470px),300px)}
+.edwrap textarea,.edwrap .back{position:absolute;inset:0;margin:0;font-family:"Noto Sans","Segoe UI",system-ui,sans-serif;font-size:18px;line-height:1.55;padding:8px 12px;border:2px solid var(--line);border-radius:10px;white-space:pre-wrap;overflow-wrap:break-word;word-wrap:break-word;overflow-y:hidden;scrollbar-gutter:stable;letter-spacing:0}
+.edwrap .back{color:transparent;background:#fff;overflow:hidden;z-index:0}
+.edwrap textarea{background:transparent;color:var(--ink);resize:none;z-index:1;outline:none;overflow-y:auto}
+.edwrap textarea:focus{border-color:var(--brass)}
+.back mark{color:transparent;border-radius:3px}
+mark.m-t{background:rgba(47,111,220,.25)}mark.m-p{background:rgba(31,154,75,.25)}mark.m-w{background:rgba(14,147,168,.25)}
+mark.m-d{background:rgba(139,63,214,.22)}mark.m-s{background:rgba(214,51,132,.22)}mark.m-c{background:rgba(224,123,0,.25)}
+mark.m-to{background:rgba(160,82,45,.22)}mark.m-ta{background:rgba(220,38,38,.2)}
+.vmark mark{color:inherit;border-radius:3px;padding:0 1px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:13px;margin-top:4px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:3px;vertical-align:-1px}
+.checks{list-style:none;padding:0;margin:6px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.checks li{padding:4px 8px;border-radius:8px;background:#f6efe0;border-left:5px solid #cdbf9f;font-size:15px;font-weight:600}
+.checks li.ok{background:#e7f6e9;border-color:var(--ok)}
+.checks li.ok::before{content:"✓ ";color:var(--ok);font-weight:800}
+.basket{display:flex;flex-wrap:wrap;gap:5px;max-height:96px;overflow:auto}
+.basket button{border:2px solid var(--brass);background:#fffaf0;border-radius:16px;padding:1px 9px;font-size:14.5px;font-weight:600}
+.basket button:hover{background:var(--brass);color:#fff}
+
+/* ===== Slide 8: compare & vote ===== */
+.cmp{display:grid;grid-template-columns:1fr 46px 1fr;gap:6px;align-items:stretch}
+.cmp .arrow{display:flex;align-items:center;justify-content:center;font-size:34px}
+.cmp .box{font-size:16.5px;line-height:1.55;max-height:calc(100vh - 520px);min-height:110px;overflow:auto;white-space:pre-wrap}
+.cnt{display:inline-block;font-weight:800;background:#2c2116;color:var(--brass-l);border-radius:8px;padding:1px 9px;font-size:15px}
+.votes{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+.vote{background:var(--paper);border:3px solid var(--line);border-radius:14px;padding:8px 10px;text-align:center;box-shadow:var(--shadow);position:relative}
+.vote.win{border-color:var(--brass);background:#fff4dc}
+.vote.win::before{content:"👑";position:absolute;top:-24px;left:50%;transform:translateX(-50%);font-size:30px}
+.vote .n{font-family:var(--hand);font-size:40px;line-height:1;color:var(--wood-d)}
+.vote .bar{height:8px;background:#efe6d2;border-radius:6px;overflow:hidden;margin:4px 0}
+.vote .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--brass),var(--ok));width:0;transition:width .4s}
+
+/* ===== Slide 9 ===== */
+.frames .fr{display:flex;align-items:baseline;gap:8px;margin:9px 0;font-weight:700;font-size:19px;flex-wrap:wrap}
+.frames .fr div[contenteditable]{flex:1;min-width:220px;border-bottom:2px dashed var(--brass);outline:none;padding:2px 6px;font-weight:500;color:var(--wood-d);font-family:var(--hand);font-size:26px;line-height:1.1}
+.frames .fr div[contenteditable]:empty::before{content:attr(data-ph);color:#c4b79c}
+.mysky{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mysky button{border:2px solid var(--line);background:#fff;border-radius:14px;padding:8px 4px;font-weight:700;font-size:14.5px;line-height:1.2}
+.mysky button .e{display:block;font-size:40px}
+.mysky button .c{display:block;font-family:var(--hand);font-size:28px;color:var(--wood-d)}
+.mysky button:active{transform:scale(.96)}
+
+/* ===== Notes / Nav ===== */
+.nav{position:fixed;inset:auto 0 0 0;height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;z-index:20;gap:10px;
+  background:linear-gradient(180deg,var(--wood-l),var(--wood) 40%,var(--wood-d));border-top:4px solid var(--brass)}
+.nav .btn{background:var(--paper);color:var(--wood-d);box-shadow:0 4px 0 rgba(0,0,0,.35);padding:7px 14px}
+.dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.dot{width:34px;height:34px;border-radius:50%;border:2px solid var(--brass-l);background:transparent;color:#f2e3cc;font-weight:800;font-size:14px;transition:.2s}
+.dot.on{background:radial-gradient(circle at 35% 35%,#fff3c4,var(--brass));color:var(--wood-d)}
+.dot.done{background:rgba(255,255,255,.18);color:#fff}
+.tnotes{position:fixed;right:16px;bottom:72px;width:min(440px,calc(100vw - 32px));max-height:calc(100vh - 160px);overflow:auto;background:#fffbe8;border:2px solid var(--brass);border-radius:12px;padding:12px 16px;font-size:15.5px;box-shadow:var(--shadow);z-index:25;display:none}
+.tnotes.show{display:block}
+.tnotes h4{margin:0 0 6px;font-size:17px}
+.tnotes ul{margin:0;padding-left:20px}.tnotes li{margin:3px 0}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
+
+@media (max-height:900px){
+  body{font-size:17px}
+  .deck{inset:68px 0 62px 0}
+  h2{font-size:26px}
+  .plaque{margin-bottom:7px;padding:2px 18px 2px 12px}.plaque .tag{font-size:22px}
+  .card{padding:10px 14px}
+  h3{font-size:18px;margin-bottom:4px}
+  .def{padding:5px 10px;margin:4px 0;font-size:15.5px}
+  .frame{border-width:11px}
+  .frame canvas{max-height:calc(100vh - 270px)}
+  .qc{min-height:58px;padding:6px 9px}.qc b{font-size:17px}.qc .a{font-size:15px}
+  .hunt{font-size:21px;line-height:1.8;padding:8px 14px;background-image:repeating-linear-gradient(transparent 0 36.8px,#e6ecf5 36.8px 37.8px)}
+  .part p{font-size:16.5px;margin:2px 0 6px}
+  .tl button{min-height:54px;font-size:13.5px}
+  .sense{margin:3px 0;padding:3px 8px}.sense input{font-size:16px;padding:4px 8px}
+  .dial{margin:4px 0;padding:4px 8px}.dial svg{width:52px;height:52px}
+  .mout{font-size:15px;min-height:44px}
+  .edwrap textarea,.edwrap .back{font-size:17px;line-height:1.5}
+  .orig{font-size:15.5px;line-height:1.5}
+  .cmp .box{font-size:15.5px}
+  .vote .n{font-size:34px}
+  .sign{padding:16px 22px}
+  .frames .fr{margin:6px 0;font-size:17px}
+  .mysky button .e{font-size:34px}
+}
+@media (max-width:1000px){
+  .steps{display:none}
+  .grid2,.intro,.cmp{grid-template-columns:1fr !important}
+  .cmp .arrow{transform:rotate(90deg)}
+  .dots{display:none}
+  .votes{grid-template-columns:1fr 1fr}
+  .slide{overflow:auto}
+}
+</style>
+</head>
+<body>
+
+<div class="hills" aria-hidden="true">
+  <svg viewBox="0 0 1440 400" preserveAspectRatio="none">
+    <path style="fill:var(--h1)" d="M0 210 C 220 120 420 150 620 200 C 820 250 1020 120 1240 150 C 1340 165 1400 180 1440 190 L1440 400 L0 400Z"/>
+    <path style="fill:var(--h2)" d="M0 280 C 180 220 380 230 560 270 C 760 315 960 220 1180 240 C 1300 252 1380 270 1440 280 L1440 400 L0 400Z"/>
+    <path style="fill:var(--h3)" d="M0 340 C 240 300 480 320 720 345 C 960 370 1200 310 1440 330 L1440 400 L0 400Z"/>
+  </svg>
+</div>
+
+<header class="top">
+  <div class="subj">📚 Монгол хэл · 5-р анги</div>
+  <div class="stage"><small>Орчин өөрчлөгч машин · <span id="slideNo">1/9</span></small><b id="stageName"></b></div>
+  <div class="steps" id="steps"><span data-s="1">👀 Ажиглах</span><span data-s="2">🖐 Мэдрэх</span><span data-s="3">⚙️ Өөрчлөх</span><span data-s="4">✏️ Бичих</span><span data-s="5">⚖️ Харьцуулах</span></div>
+  <div class="timer" id="timer" title="Хичээлийн үлдсэн хугацаа (2 удаа дарвал 40:00 болно)">⏱ <span id="tval">40:00</span></div>
+  <button class="tbtn" id="tPlay" title="Цаг эхлүүлэх / зогсоох">▶</button>
+  <button class="tbtn" id="notesBtn" title="Багшийн тэмдэглэл (N)">📝</button>
+  <button class="tbtn" id="fsBtn" title="Бүтэн дэлгэц (F)">⛶</button>
+</header>
+
+<main class="deck">
+
+<!-- 1. Танилцуулга -->
+<section class="slide" data-name="Танилцуулга" data-min="1" data-step="0"
+  data-notes="Хүүхдүүдтэй мэндэлнэ. Өнөөдрийн сэдэв: 12-р бүлэг «Эхийн орчныг төсөөлөн бодож, өөрчлөн бичье» (Сурах бичиг «Монгол хэл V», х.141–152).|Цонхонд нэг газрын 4 улирлын дүр зураг харагдаж байна — «Нэг газар ч улирал өөрчлөгдөхөд ямар өөр харагдаж байна вэ?» гэж ганц асуулт асууна.|Хичээлийн зам: Ажиглах → Мэдрэх → Өөрчлөх → Бичих → Харьцуулах. Өнөөдөр бид «орчин өөрчлөгч машин»-ы инженерүүд болно.|Дээд талын ▶ товчоор 40 минутын цагийг эхлүүлнэ (цаг дээр 2 удаа дарвал 40:00 болно).">
+  <div class="inner intro">
+    <div>
+      <div class="frame cross"><canvas id="introCv" width="960" height="540"></canvas></div>
+      <div class="sill"></div>
+    </div>
+    <div class="sign">
+      <div class="school">🏫 1-р сургууль</div>
+      <div class="subj">Монгол хэл</div>
+      <div class="chap">12-р бүлэг · 5-р анги</div>
+      <div class="ttl">Эхийн орчныг төсөөлөн бодож, өөрчлөн бичье</div>
+      <div class="teacher">👩‍🏫 Багш: В. Гэрэлтуяа</div>
+      <div class="flow"><span>👀 Ажиглах</span><span>🖐 Мэдрэх</span><span>⚙️ Өөрчлөх</span><span>✏️ Бичих</span><span>⚖️ Харьцуулах</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. Цонхоор харъя -->
+<section class="slide" data-name="Цонхоор харъя" data-min="3" data-step="1"
+  data-notes="Цонхны дүр зургийг 20–30 секунд чимээгүй ажиглуулаад 2–3 хүүхдээр «Би … харж байна» гэж дүрслүүлнэ.|Асуултын картыг дарахад санаа нээгдэж, зурган дээр тухайн хэсэг гэрэлтэнэ. Хүүхдүүд өөрсдөө хариулсны дараа картаа нээгээрэй.|Дүрэм (х.145): эхийн орчин нь үйл явдал ХААНА, ХЭЗЭЭ болж байгааг илэрхийлдэг; орон байр, улирал, цаг хугацаа, цаг агаараас бүрддэг.|Сонирхох асуулт (х.141, 1-р даалгавар): «Таван хошуу малыг хотод хариулбал ямар байх бол?» — орчин өөрчлөгдөхөд бүх зүйл өөрчлөгддөгийг мэдрүүлнэ.">
+  <div class="inner">
+    <div class="plaque"><span class="tag">Ажиглах</span><h2>🖼️ Цонхоор харъя</h2></div>
+    <div class="grid2" style="grid-template-columns:1.25fr .75fr">
+      <div>
+        <div class="frame cross"><canvas id="winCv" width="960" height="540"></canvas></div>
+        <div class="sill"></div>
+      </div>
+      <div class="card">
+        <div class="def"><b>Орчин</b> гэдэг нь үйл явдал <b>хаана, хэзээ</b>, ямар <b>цаг агаарт</b> болж байгаа нь. Бид түүнийг <b>харж, сонсож, үнэрлэж</b> мэдэрдэг.</div>
+        <div class="qcards" id="qcards">
+          <button class="qc" data-f="time"><b>🕐 Хэзээ?</b><span class="a">Зуны өглөө — нар дөнгөж мандаж, өвс ногоорсон.</span></button>
+          <button class="qc" data-f="place"><b>📍 Хаана?</b><span class="a">Хөдөө, өргөн тал дээр, ганц гэрийн дэргэд.</span></button>
+          <button class="qc" data-f="wx"><b>☁️ Цаг агаар?</b><span class="a">Цэлмэг, салхигүй, тунгалаг сэрүүхэн.</span></button>
+          <button class="qc" data-f="sound"><b>👂 Юу сонсогдох вэ?</b><span class="a">Хонь майлах, шувуу жиргэх… Чи өөр юу сонсож байна?</span></button>
+          <button class="qc wide" data-f="smell"><b>👃 Ямар үнэр үнэртэх вэ?</b><span class="a">Аргалын утаа, шинэхэн өвс, сүүтэй цай…</span></button>
+        </div>
+        <div class="def b" style="font-size:15.5px;margin-top:8px">🤔 <b>Хэрвээ…?</b> Таван хошуу малыг <b>хотод</b> хариулбал ямар байх бол? <span class="book">📖 х.141</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. Уншлага -->
+<section class="slide" data-name="Уншлага: «Шуурга» (Ц.Мөнх)" data-min="6" data-step="1"
+  data-notes="Уншихын өмнө (х.142, 1-р даалгавар): «Шуурга» гэсэн нэрээр нь хаана, ямар улиралд, хэдийд болсныг таамаглуулж чипс дээр дарж сонгуулна.|Өгүүллэгийг сурах бичгийн х.142–144-өөс чанга уншина/уншуулна (Ц.Мөнх «Шуурга», 5 хэсэг). Дэлгэцэнд зөвхөн багшийн өөрийн үгээр бичсэн товч агуулга бий.|Уншсаны дараа 5 хэсгийг дараалан дарж орчин хэрхэн өөрчлөгдсөнийг ярилцана (х.145–147, 1–6-р даалгавар; 6-р даалгаврын нэгтгэх хүснэгт). 5 хэсгийг бүгдийг үзсэний дараа «Таамгаа шалгах» дарна.|Шинэ үгс (х.142 тайлбар толь): нэмнээ, нудрах, ухаа, хөрзөн, тургих — картыг дарж утгыг нээнэ.|Хугацаа бага бол 1, 3, 4-р хэсгийг уншаад бусдыг товч ярина. Асуулт (х.145): «Ямаа нь сэрээгээгүй бол юу болох байсан бэ?»">
+  <div class="inner">
+    <div class="plaque"><span class="tag">Ажиглах</span><h2>📖 «Шуурга» — орчин хэрхэн өөрчлөгдөв?</h2><span class="book">📖 Сурах бичиг х.142–144</span></div>
+    <div class="grid2" style="grid-template-columns:.9fr 1.1fr">
+      <div class="card">
+        <h3>🔮 Уншихын өмнө таамаглая</h3>
+        <div id="pred"></div>
+        <div class="row" style="margin-top:4px"><button class="btn brass sm" id="predChk">🔍 Таамгаа шалгах</button></div>
+        <div class="feedback" id="predFb" style="font-size:16px"></div>
+        <h3 style="margin-top:6px">📘 Шинэ үгс <span class="muted" style="font-size:14px;font-weight:400">(дарж нээ)</span></h3>
+        <div class="vocab" id="vocab"></div>
+      </div>
+      <div class="card">
+        <div class="tl" id="tl"></div>
+        <div class="part" id="part"><p class="muted">👆 Өгүүллэгийн хэсгийг дарж товч агуулга, орчныг нь үзээрэй.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. Орчны үг агнах -->
+<section class="slide" data-name="Орчны үг агнах" data-min="5" data-step="2"
+  data-notes="Энэ эхийг багш өөрөө зохиосон (сурах бичгийнх биш) — дараагийн слайдуудад бид энэ эхийн орчныг өөрчилнө.|Эхлээд өнгөт «бийр»-ээ сонгоод, тухайн бүлгийн үг дээр дарна: 🕐 цаг, 📍 газар, ☁️ цаг агаар, 👂 дуу, 👃 үнэр, 🎨 өнгө. Нийт 17 хэллэг нуугдсан.|Хүүхдүүдийг ээлжлэн самбарт гаргана. Буруу дарвал тайлбар гарна. «Бүгдийг харуулах» товчоор шалгана.|Холбоо (х.145, 1-р даалгавар): «Өвлийн өдөр» хэсгийн хүснэгтийн «Яаж мэдсэн бэ?» баганыг яг ийм үгсээр нөхдөг.">
+  <div class="inner">
+    <div class="plaque"><span class="tag">Мэдрэх</span><h2>🏹 Орчны үг агнах</h2></div>
+    <div class="brushes" id="brushes"></div>
+    <div class="grid2" style="grid-template-columns:1.35fr .65fr">
+      <div class="hunt" id="hunt"></div>
+      <div class="card">
+        <div class="score">Олсон: <span id="huntN">0</span> / <span id="huntT">17</span></div>
+        <div class="feedback" id="huntFb" style="min-height:52px">🖌️ Эхлээд бийрээ сонгоод, үг дээр дар.</div>
+        <div class="def g" style="font-size:15.5px">Орчныг заадаг үгс уншигчид <b>хаана, хэзээ</b>, ямар байдалтай байгааг <b>нүдэндээ харуулдаг</b>.</div>
+        <div class="row" style="margin-top:6px"><button class="btn ghost sm" id="huntAll">👁 Бүгдийг харуулах</button><button class="btn ghost sm" id="huntReset">↺ Шинээр</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. 5 мэдрэхүйн дугуй -->
+<section class="slide" data-name="5 мэдрэхүйн дугуй" data-min="5" data-step="2"
+  data-notes="Сурах бичиг х.146–147, 4-р даалгавар («Шуурганаар» хэсэг): харагдах, сонсогдох, мэдрэгдэх хүснэгт.|Дугуйг эргүүлэхэд гарсан мэдрэхүйгээр асуулт асууна; хүүхдүүд хариулж, нэг нь шивнэ. Дугуйн хэсэг дээр шууд дарж ч сонгож болно.|Дүрэм (х.147): эхийн орчныг харах, сонсох, үнэрлэх, амтлах, хүртэх (мэдрэх) 5 мэдрэхүйд үндэслэн дүрсэлдэг; ингэснээр уншигч бодитой төсөөлдөг.|«💡 Санаа» товч жишээ хариултыг харуулна. Бичсэн хариулт автоматаар хадгалагдана.">
+  <div class="inner">
+    <div class="plaque"><span class="tag">Мэдрэх</span><h2>🎡 5 мэдрэхүйн дугуй</h2><span class="book">📖 х.144, 146–147</span></div>
+    <div class="grid2" style="grid-template-columns:.62fr 1.38fr">
+      <div class="card" style="text-align:center">
+        <div class="wheelbox"><div class="ptr">🔻</div><svg viewBox="0 0 300 300" id="wheelSvg"><g id="wheelG"></g><circle cx="150" cy="150" r="30" fill="#fffaf0" stroke="#8a6420" stroke-width="4"/><text x="150" y="158" text-anchor="middle" font-size="24">🌨️</text></svg></div>
+        <div class="row" style="justify-content:center;margin-top:8px"><button class="btn brass" id="spin">🎡 Эргүүлэх</button><button class="btn ghost sm" id="hintBtn">💡 Санаа</button></div>
+      </div>
+      <div class="card" id="senseCard">
+        <h3>🌨️ «Шуурганаар» хэсэгт Ичинхорлоо юуг мэдэрсэн бол?</h3>
+        <div id="senses"></div>
+        <div class="feedback" id="senseFb"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. Орчин өөрчлөгч машин -->
+<section class="slide" data-name="Орчин өөрчлөгч машин" data-min="6" data-step="3"
+  data-notes="Сурах бичиг х.148, 2-р алхам: орон байр (хот, далай, уул), цаг хугацаа (улирал, өдрийн цаг), цаг агаар (бороо, шороон шуурга)-аас сонгож өөрчилнө.|Хүүхдүүд ээлжлэн машины бариулыг (бариул эсвэл товч) эргүүлж, цонхны дүр зураг хэрхэн өөрчлөгдөхийг ажиглана. «Юу өөрчлөгдсөн бэ?» гэж асууна.|Дүрэм (х.148): орчны аль нэгийг өөрчлөхөд дүрслэл, заримдаа баатрууд хүртэл дагаж өөрчлөгддөг.|Доор гарсан үгийн чипс дээр дарвал «Үгийн сагс»-анд орно — дараагийн слайдад бичихэд ашиглана.|Эцэст нь ангиараа нэг шинэ орчин сонгож тохиролцоно (эсвэл бүлэг бүр өөр орчин).">
+  <div class="inner">
+    <div class="plaque"><span class="tag">Өөрчлөх</span><h2>⚙️ Орчин өөрчлөгч машин</h2></div>
+    <div class="grid2" style="grid-template-columns:1.15fr .85fr">
+      <div>
+        <div class="frame" id="machFrame"><canvas id="machCv" width="960" height="540"></canvas></div>
+        <div class="sill"></div>
+        <div class="vchips" id="vchips"></div>
+      </div>
+      <div class="panel">
+        <h3>🔧 Удирдлагын самбар</h3>
+        <div id="dials"></div>
+        <div class="row" style="justify-content:space-between;margin-top:4px"><button class="btn sm" id="mRand">🎲 Санамсаргүй</button><span style="font-weight:800;color:#3d2810">🧺 Сагсанд: <span id="bCount">0</span></span></div>
+        <div class="mout" id="mOut"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7. Өөрчлөн бичих -->
+<section class="slide" data-name="Өөрчлөн бичих" data-min="8" data-step="4"
+  data-notes="Сурах бичиг х.148–149, 3–5-р алхам. Эхлээд Бат «Өвлийн өдөр»-ийг «Зуны өдөр» болгон өөрчилсөн жишээг (х.149) чанга уншиж өгнө.|Зүүн талд эх эх, машинаар сонгосон шинэ орчин, үгийн сагс бий. Сагсны үг дээр дарахад текстэд нэмэгдэнэ.|4 бүлэг өөр өөрийн таб дээр бичнэ (эсвэл дэвтэрт бичээд нэг нь шивнэ). Орчны үгс автоматаар өнгөөр тодорч, шалгах хуудас өөрөө ✓ болно. Бүх текст хадгалагдана.|Сануулга: баатрын нэр (Сараа)-г үлдээж, зөвхөн орчныг өөрчилнө.|Хурдан дуусгасан бүлэг: «Аав хүү хоёр» (х.150)-ын орчныг амаар өөрчилж үзнэ.">
+  <div class="inner">
+    <div class="plaque"><span class="tag">Бичих</span><h2>✏️ Орчныг өөрчлөн бичье</h2><span class="book">📖 х.148–149</span></div>
+    <div class="grid2" style="grid-template-columns:.85fr 1.15fr">
+      <div class="card">
+        <h3>📜 Эх эх: «Намрын өглөө»</h3>
+        <div class="orig" id="orig7"></div>
+        <div class="def" style="font-size:15.5px" id="newEnv"></div>
+        <h3 style="margin-top:4px">🧺 Үгийн сагс <span class="muted" style="font-size:14px;font-weight:400">(дарвал нэмэгдэнэ)</span></h3>
+        <div class="basket" id="basket"></div>
+      </div>
+      <div class="card">
+        <div class="gtabs" id="gtabs7"></div>
+        <div class="edwrap"><div class="back" id="rwBack" aria-hidden="true"></div><textarea id="rwText" spellcheck="false" placeholder="Энд шинэ орчинтой эхээ бич… Жишээ нь: Өвлийн хүйтэн шөнө. Хотын гудамжинд цас будран орно…"></textarea></div>
+        <div class="legend"><span><i style="background:var(--ct)"></i>цаг</span><span><i style="background:var(--cp)"></i>газар</span><span><i style="background:var(--cw)"></i>цаг агаар</span><span><i style="background:var(--cc)"></i>харах</span><span><i style="background:var(--cd)"></i>сонсох</span><span><i style="background:var(--cs)"></i>үнэрлэх</span><span><i style="background:var(--cto)"></i>мэдрэх</span><span><i style="background:var(--cta)"></i>амтлах</span></div>
+        <ul class="checks" id="checks"></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8. Өмнө ба дараа -->
+<section class="slide" data-name="Өмнө ба дараа" data-min="4" data-step="5"
+  data-notes="Бүлэг бүр «Өмнө» ба «Дараа» эхээ чанга уншина (х.149, 10-р алхам). Таб дээр дарж бүлгээ сонгоно.|Үнэлгээний шалгуур (х.149, 6-р алхам): газар орноо нэрлэсэн эсэх, хэзээ болж буй нь тодорхой эсэх, цаг агаарыг дүрсэлсэн эсэх, нүдэнд харагдах, чихэнд сонсогдох дүрслэл ашигласан эсэх.|Хүүхэд бүр ӨӨР бүлгийн хамгийн тод дүрслэлтэй эхэд 1 санал өгнө (👍). «🏆 Ялагч» товч хамгийн олон санал авсан бүлгийг тодруулна.">
+  <div class="inner">
+    <div class="plaque"><span class="tag">Харьцуулах</span><h2>⚖️ Өмнө ба дараа</h2></div>
+    <div class="card">
+      <div class="row" style="justify-content:space-between;margin-bottom:4px"><div class="gtabs" id="gtabs8" style="margin:0"></div><span class="muted" style="font-size:15px">Шалгуур: газар · цаг · цаг агаар · харагдах · сонсогдох</span></div>
+      <div class="cmp">
+        <div><b>🍂 Өмнө</b> <span class="cnt" id="cntA"></span><div class="orig box" id="cmpA"></div></div>
+        <div class="arrow">➜</div>
+        <div><b>✨ Дараа</b> <span class="cnt" id="cntB"></span><div class="orig box vmark" id="cmpB"></div></div>
+      </div>
+    </div>
+    <div class="votes" id="votes"></div>
+    <div class="row" style="justify-content:center;margin-top:8px"><button class="btn brass" id="winBtn">🏆 Ялагч</button><button class="btn ghost sm" id="voteReset">↺ Санал арилгах</button><span class="feedback ok" id="voteFb" style="margin:0"></span></div>
+  </div>
+</section>
+
+<!-- 9. Дүгнэлт -->
+<section class="slide" data-name="Дүгнэлт ба гэрийн даалгавар" data-min="2" data-step="6"
+  data-notes="Өгүүлбэрийг 2–3 хүүхдээр гүйцээж хэлүүлнэ (шивж бичиж болно — хадгалагдана).|«Миний тэнгэр»: хүүхэд бүр өөрийн ойлголтыг цаг агаараар илэрхийлж дарна (тоологдоно). ⛅ ба 🌧️ сонгосон хүүхдүүдтэй дараа ярилцана.|Гэрийн даалгавар: х.151, 5-р даалгавар — «Аав хүү хоёр» (х.150, Б.Ринчен) эхийн орчныг өөрчлөн бичиж, зургаар илэрхийлэх.|Нэмэлт (сонголтоор): х.152, 1-р даалгавар — «Бороо» эхийн орчныг цас орж байгаа / шуурга шуурч байгаа / солонго татаж байгаа болгон өөрчлөх.">
+  <div class="inner">
+    <div class="plaque"><span class="tag">Дүгнэлт</span><h2>🌈 Би юу сурсан бэ?</h2></div>
+    <div class="grid2" style="grid-template-columns:1.15fr .85fr">
+      <div class="card frames">
+        <div class="fr">Эхийн орчин гэдэг нь <div contenteditable="true" data-k="eo_f1" data-ph="үйл явдал хаана, хэзээ болж байгаа нь…"></div></div>
+        <div class="fr">Орчныг өөрчлөхөд <div contenteditable="true" data-k="eo_f2" data-ph="дүрслэл, дуу чимээ, өнгө… өөрчлөгддөг"></div></div>
+        <div class="fr">Миний хамгийн дуртай орчны үг: <div contenteditable="true" data-k="eo_f3" data-ph="…"></div></div>
+        <div class="fr">Дараа нь би <div contenteditable="true" data-k="eo_f4" data-ph="ямар орчинд өгүүллэг бичмээр байна вэ?"></div></div>
+      </div>
+      <div class="card">
+        <h3>🌤 Өнөөдөр миний тэнгэр…</h3>
+        <div class="mysky" id="mysky">
+          <button data-i="0"><span class="e">☀️</span>Бүгдийг ойлгосон<span class="c">0</span></button>
+          <button data-i="1"><span class="e">⛅</span>Бага зэрэг асуулттай<span class="c">0</span></button>
+          <button data-i="2"><span class="e">🌧️</span>Тусламж хэрэгтэй<span class="c">0</span></button>
+        </div>
+        <div class="def g" style="font-size:15.5px;margin-top:8px">🏠 <b>Гэрийн даалгавар:</b> Сурах бичгийн <b>х.151, 5-р даалгавар</b> — «Аав хүү хоёр» эхийн орчныг өөрчлөн бичиж, зургаар илэрхийл.<br>⭐ Нэмэлт: <b>х.152</b> — «Бороо» эхийг цас / шуурга / солонготой болгож өөрчил.</div>
+        <p class="hand" style="text-align:center;margin:6px 0 0;color:var(--wood-d)">Баярлалаа, орчин өөрчлөгч инженерүүд! ⚙️</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<nav class="nav">
+  <button class="btn" id="prevBtn">◀ Өмнөх</button>
+  <div class="dots" id="dots"></div>
+  <button class="btn" id="nextBtn">Дараах ▶</button>
+</nav>
+<div class="tnotes" id="tnotes"><h4>📝 Багшид зориулсан зөвлөмж</h4><ul id="tnList"></ul></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <radialGradient id="brassG" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#fff1bf"/><stop offset=".45" stop-color="#d9a648"/><stop offset="1" stop-color="#7a5520"/></radialGradient>
+</defs></svg>
+<canvas id="confetti"></canvas>
+
+<script>
+/* ---------- Helpers ---------- */
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const jget=(k,d)=>{try{const v=store.get(k);return v?JSON.parse(v):d}catch(e){return d}};
+const jset=(k,v)=>store.set(k,JSON.stringify(v));
+const $=id=>document.getElementById(id);
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const R=i=>{const x=Math.sin(i*127.1+311.7)*43758.5453;return x-Math.floor(x)};
+function hx(h){h=h.replace('#','');return[0,2,4].map(i=>parseInt(h.substr(i,2),16))}
+function mix(a,b,k){const pa=hx(a),pb=hx(b);return '#'+pa.map((v,i)=>Math.round(v+(pb[i]-v)*k).toString(16).padStart(2,'0')).join('')}
+function rgba(h,a){const p=hx(h);return `rgba(${p[0]},${p[1]},${p[2]},${a})`}
+
+/* ================= Scene painter ================= */
+const SKY={mor:['#8fc1ee','#ffd2a8'],day:['#3d8fe0','#cbe8ff'],eve:['#4a3478','#ff9a5a'],nig:['#08122e','#22336a']};
+const WXT={rain:['#5f6b78',.6],snow:['#c4ccd6',.45],dust:['#b8915a',.62]};
+const HILL={spr:['#a6dc7a','#7cc456','#5aa83f'],sum:['#6cc552','#46a83d','#2f8c31'],aut:['#efc15a','#d9953a','#b86e2c'],win:['#ffffff','#e3ecf6','#c9d7e6']};
+function skyCols(S){return SKY[S.time].map(c=>S.wx!=='clr'?mix(c,WXT[S.wx][0],WXT[S.wx][1]):c)}
+function landCol(S,c){if(S.time==='nig')c=mix(c,'#0a1430',.55);else if(S.time==='eve')c=mix(c,'#6a3050',.22);
+  if(S.wx==='dust')c=mix(c,'#b8915a',.35);else if(S.wx==='rain')c=mix(c,'#4a5560',.22);return c}
+function hill(c,W,H,base,amp,f,ph,col){c.fillStyle=col;c.beginPath();c.moveTo(0,H);for(let x=0;x<=W;x+=16)c.lineTo(x,base+amp*Math.sin(x*f+ph)+amp*.4*Math.sin(x*f*2.3+ph*1.7));c.lineTo(W,H);c.closePath();c.fill()}
+function hy(W,base,amp,f,ph,x){return base+amp*Math.sin(x*f+ph)+amp*.4*Math.sin(x*f*2.3+ph*1.7)}
+function cloud(c,x,y,s,col){c.fillStyle=col;c.beginPath();c.arc(x,y,22*s,0,7);c.arc(x+26*s,y-12*s,28*s,0,7);c.arc(x+56*s,y,24*s,0,7);c.arc(x+28*s,y+8*s,24*s,0,7);c.fill()}
+function ger(c,x,y,s,S,t){
+  const body=landCol(S,'#f4efe4'),roof=landCol(S,'#e2d8c0');
+  c.fillStyle=body;c.fillRect(x-40*s,y-34*s,80*s,34*s);
+  c.fillStyle=roof;c.beginPath();c.moveTo(x-46*s,y-32*s);c.quadraticCurveTo(x,y-74*s,x+46*s,y-32*s);c.closePath();c.fill();
+  c.strokeStyle=landCol(S,'#9a7b4f');c.lineWidth=2*s;c.beginPath();c.moveTo(x-40*s,y-18*s);c.lineTo(x+40*s,y-18*s);c.stroke();
+  c.fillStyle=(S.time==='nig'||S.time==='eve')?'#ffd25a':'#d9822b';c.fillRect(x-9*s,y-26*s,18*s,26*s);
+  if(S.time==='nig'){c.fillStyle='rgba(255,210,90,.25)';c.beginPath();c.arc(x,y-12*s,30*s,0,7);c.fill()}
+  // chimney smoke
+  const wind=S.wx==='dust'||S.wx==='rain'?2.2:S.wx==='snow'?1.2:.5;
+  for(let i=0;i<9;i++){const k=((t*.35+i/9)%1);c.fillStyle=`rgba(${S.time==='nig'?'180,190,210':'235,238,245'},${.55*(1-k)})`;c.beginPath();c.arc(x+12*s+k*60*s*wind+Math.sin(t*2+i)*4,y-70*s-k*90*s/(wind*.6+.6),(5+k*12)*s,0,7);c.fill()}
+  c.fillStyle=landCol(S,'#6d5b45');c.fillRect(x+10*s,y-76*s,5*s,10*s);
+}
+function sheep(c,x,y,s,S){c.fillStyle=landCol(S,S.season==='win'?'#f2f2ee':'#ffffff');c.beginPath();c.ellipse(x,y,12*s,8*s,0,0,7);c.fill();c.fillStyle=landCol(S,'#2b2b2b');c.beginPath();c.ellipse(x+12*s,y-3*s,4.5*s,4*s,0,0,7);c.fill();c.fillRect(x-7*s,y+5*s,2*s,6*s);c.fillRect(x+5*s,y+5*s,2*s,6*s)}
+function pine(c,x,y,s,S){c.fillStyle=landCol(S,'#5a3d22');c.fillRect(x-3*s,y-10*s,6*s,12*s);c.fillStyle=landCol(S,'#1f6b3a');
+  for(let i=0;i<3;i++){c.beginPath();c.moveTo(x,y-58*s+i*14*s);c.lineTo(x-(16+i*5)*s,y-24*s+i*10*s);c.lineTo(x+(16+i*5)*s,y-24*s+i*10*s);c.closePath();c.fill()}
+  if(S.season==='win'){c.fillStyle=landCol(S,'#ffffff');for(let i=0;i<3;i++){c.beginPath();c.moveTo(x,y-58*s+i*14*s);c.lineTo(x-(8+i*3)*s,y-44*s+i*12*s);c.lineTo(x+(8+i*3)*s,y-44*s+i*12*s);c.closePath();c.fill()}}}
+function tree(c,x,y,s,S){c.fillStyle=landCol(S,'#6b4a2b');c.fillRect(x-3*s,y-34*s,6*s,34*s);
+  const cr={spr:'#b6e388',sum:'#3f9e3a',aut:'#e8962f',win:null}[S.season];
+  if(cr){c.fillStyle=landCol(S,cr);c.beginPath();c.arc(x,y-44*s,20*s,0,7);c.arc(x-12*s,y-36*s,14*s,0,7);c.arc(x+12*s,y-36*s,14*s,0,7);c.fill();
+    if(S.season==='spr'){c.fillStyle=landCol(S,'#ffc0d6');for(let i=0;i<6;i++){c.beginPath();c.arc(x+(R(x+i)-.5)*34*s,y-44*s+(R(x*2+i)-.5)*22*s,2.6*s,0,7);c.fill()}}}
+  else{c.strokeStyle=landCol(S,'#6b4a2b');c.lineWidth=2*s;c.beginPath();c.moveTo(x,y-30*s);c.lineTo(x-14*s,y-50*s);c.moveTo(x,y-34*s);c.lineTo(x+12*s,y-54*s);c.stroke();c.fillStyle='#fff';c.fillRect(x-15*s,y-52*s,6*s,3*s);c.fillRect(x+9*s,y-56*s,6*s,3*s)}}
+
+function drawScene(c,W,H,S,t){
+  const sk=skyCols(S);const g=c.createLinearGradient(0,0,0,H*.75);g.addColorStop(0,sk[0]);g.addColorStop(1,sk[1]);c.fillStyle=g;c.fillRect(0,0,W,H);
+  const night=S.time==='nig',clear=S.wx==='clr';
+  if(night){for(let i=0;i<70;i++){const a=(clear?.9:.25)*(.5+.5*Math.sin(t*2+i));c.fillStyle=`rgba(255,255,230,${a})`;c.fillRect(R(i)*W,R(i+99)*H*.5,2,2)}}
+  const sp={mor:[.16,.42],day:[.5,.16],eve:[.84,.44],nig:[.8,.17]}[S.time];const sx=sp[0]*W,sy=sp[1]*H,dimA=clear?1:.3;
+  c.save();c.globalAlpha=dimA;
+  if(night){c.fillStyle='rgba(255,246,208,.18)';c.beginPath();c.arc(sx,sy,60,0,7);c.fill();c.fillStyle='#fff6d0';c.beginPath();c.arc(sx,sy,30,0,7);c.fill();c.fillStyle='rgba(200,190,150,.5)';c.beginPath();c.arc(sx-8,sy-6,6,0,7);c.arc(sx+9,sy+8,4,0,7);c.fill()}
+  else{const sc={mor:'#ffd36b',day:'#ffe14d',eve:'#ff7a3a'}[S.time];const rg=c.createRadialGradient(sx,sy,10,sx,sy,110);rg.addColorStop(0,rgba(sc,.6));rg.addColorStop(1,rgba(sc,0));c.fillStyle=rg;c.beginPath();c.arc(sx,sy,110,0,7);c.fill();c.fillStyle=sc;c.beginPath();c.arc(sx,sy,36,0,7);c.fill()}
+  c.restore();
+  // clouds
+  if(clear){for(let i=0;i<3;i++){const x=((R(i+5)*W+t*12*(1+i*.3))%(W+260))-160;cloud(c,x,60+i*48,.8+R(i)*.5,night?'rgba(200,210,235,.25)':'rgba(255,255,255,.85)')}}
+  else{const cc=S.wx==='dust'?'rgba(150,115,70,.7)':S.wx==='snow'?'rgba(225,230,238,.85)':'rgba(95,105,120,.85)';for(let i=0;i<8;i++){const x=((R(i+20)*W+t*(S.wx==='dust'?60:18))%(W+300))-200;cloud(c,x,30+R(i+3)*90,1.1+R(i+7)*.8,cc)}}
+  const hc=HILL[S.season].map(h=>landCol(S,h));
+  // place background
+  if(S.place==='mtn'){const pk=[[.12,.22,.26],[.38,.12,.3],[.66,.18,.28],[.9,.26,.22]];pk.forEach(([px,py,w])=>{const X=px*W,Y=py*H,B=H*.7;c.fillStyle=landCol(S,mix('#7d8aa0',hc[2],.25));c.beginPath();c.moveTo(X-w*W,B);c.lineTo(X,Y);c.lineTo(X+w*W,B);c.closePath();c.fill();
+      const cap=S.season==='win'?.55:.22;c.fillStyle=landCol(S,'#ffffff');c.beginPath();c.moveTo(X,Y);c.lineTo(X-w*W*cap,Y+(B-Y)*cap);c.lineTo(X-w*W*cap*.4,Y+(B-Y)*cap*.8);c.lineTo(X,Y+(B-Y)*cap);c.lineTo(X+w*W*cap*.5,Y+(B-Y)*cap*.85);c.lineTo(X+w*W*cap,Y+(B-Y)*cap);c.closePath();c.fill()});
+    hill(c,W,H,H*.7,16,.008,1,hc[0]);hill(c,W,H,H*.8,14,.011,2.2,hc[1]);
+    for(let i=0;i<9;i++){const x=R(i+40)*W;pine(c,x,hy(W,H*.8,14,.011,2.2,x)+30,.9+R(i)*.4,S)}
+    hill(c,W,H,H*.9,10,.01,4,hc[2]);
+  }else if(S.place==='city'){
+    hill(c,W,H,H*.6,18,.006,1,mix(hc[0],'#8fa0b5',.5));
+    for(let i=0;i<13;i++){const bw=W/13,x=i*bw+3,h=H*(.22+R(i+60)*.3),y=H*.8-h;const bc=landCol(S,mix('#6d7a8c','#9aa7b8',R(i+3)));c.fillStyle=bc;c.fillRect(x,y,bw-6,h);
+      if(S.season==='win'){c.fillStyle=landCol(S,'#ffffff');c.fillRect(x-2,y-5,bw-2,7)}
+      for(let yy=y+12;yy<H*.78-12;yy+=22)for(let xx=x+8;xx<x+bw-18;xx+=16){const lit=(S.time==='nig'||S.time==='eve')&&R(xx*3+yy)>.35;c.fillStyle=lit?'#ffd86b':landCol(S,'#cfe3f7');c.fillRect(xx,yy,9,12)}}
+    c.fillStyle=landCol(S,S.season==='win'?'#e9eef4':'#b9b2a4');c.fillRect(0,H*.8,W,H*.05);
+    c.fillStyle=landCol(S,'#4a4f57');c.fillRect(0,H*.85,W,H*.15);c.fillStyle='#e8d36a';for(let x=(t*80)%60-60;x<W;x+=60)c.fillRect(x,H*.92,30,4);
+    for(let i=0;i<4;i++){const dir=i%2?1:-1,x=((R(i+80)*W+dir*t*(90+i*25))%(W+120)+W+120)%(W+120)-60,y=H*(i%2?.95:.89);c.fillStyle=['#d9363e','#2f6fdc','#f2b632','#1f9a4b'][i];c.fillRect(x-28,y-14,56,16);c.fillRect(x-16,y-24,32,12);c.fillStyle='#222';c.beginPath();c.arc(x-16,y+2,5,0,7);c.arc(x+16,y+2,5,0,7);c.fill();
+      if(S.time==='nig'||S.time==='eve'){c.fillStyle='rgba(255,240,170,.55)';c.beginPath();c.moveTo(x+dir*28,y-8);c.lineTo(x+dir*90,y-20);c.lineTo(x+dir*90,y+6);c.closePath();c.fill()}}
+    for(let i=0;i<6;i++)tree(c,60+i*W/6,H*.82,.9,S);
+  }else if(S.place==='lake'){
+    hill(c,W,H,H*.56,20,.007,1.3,hc[1]);hill(c,W,H,H*.6,12,.012,3,hc[2]);
+    const frozen=S.season==='win';const wg=c.createLinearGradient(0,H*.62,0,H);
+    if(frozen){wg.addColorStop(0,landCol(S,'#dff0fb'));wg.addColorStop(1,landCol(S,'#b9d8ee'))}else{wg.addColorStop(0,mix(sk[1],'#2e78b8',.45));wg.addColorStop(1,mix(sk[0],'#1d4f86',.55))}
+    c.fillStyle=wg;c.fillRect(0,H*.62,W,H*.38);
+    if(frozen){c.strokeStyle='rgba(255,255,255,.8)';c.lineWidth=1.5;for(let i=0;i<7;i++){c.beginPath();const x=R(i+9)*W,y=H*.66+R(i+19)*H*.25;c.moveTo(x,y);c.lineTo(x+30,y+10);c.lineTo(x+55,y+4);c.stroke()}}
+    else{c.strokeStyle='rgba(255,255,255,.45)';c.lineWidth=2;for(let i=0;i<22;i++){const y=H*.65+R(i+3)*H*.3,x=((R(i)*W+t*(10+R(i+1)*20))%W);c.beginPath();c.moveTo(x,y);c.lineTo(x+18+R(i+2)*20,y);c.stroke()}
+      if(!night){c.fillStyle=rgba('#ffffff',.22);c.fillRect(sx-30,H*.63,60,H*.3)}
+      const bx=((t*25)%(W+160))-80,by=H*.74+Math.sin(t*2)*3;c.fillStyle=landCol(S,'#8a4b2a');c.beginPath();c.moveTo(bx-34,by);c.lineTo(bx+34,by);c.lineTo(bx+24,by+12);c.lineTo(bx-24,by+12);c.closePath();c.fill();c.fillStyle=landCol(S,'#fffaf0');c.beginPath();c.moveTo(bx,by-44);c.lineTo(bx,by-2);c.lineTo(bx+26,by-4);c.closePath();c.fill()}
+    hill(c,W,H,H*.95,6,.02,1,hc[0]);
+  }else{ // countryside
+    hill(c,W,H,H*.6,22,.006,.5,hc[0]);hill(c,W,H,H*.7,18,.009,2,hc[1]);
+    ger(c,W*.62,hy(W,H*.7,18,.009,2,W*.62)+4,1.25,S,t);
+    for(let i=0;i<7;i++){const x=W*.15+i*48+Math.sin(t*.3+i)*14;sheep(c,x,H*.82+R(i)*30,1,S)}
+    hill(c,W,H,H*.9,10,.012,4,hc[2]);
+  }
+  // season extras
+  if((S.season==='spr'||S.season==='sum')&&S.place!=='city'){const fl=S.season==='spr'?['#ffe066','#ff9ec4','#ffffff']:['#ffd23f','#e85d75','#b48cff'];for(let i=0;i<40;i++){c.fillStyle=landCol(S,fl[i%3]);c.beginPath();c.arc(R(i+200)*W,H*.86+R(i+300)*H*.13,2.6,0,7);c.fill()}}
+  if(S.season==='aut'&&S.wx!=='snow'){for(let i=0;i<22;i++){const x=(R(i+50)*W+t*(25+R(i)*30)+Math.sin(t+i)*20)%W,y=(R(i+70)*H+t*(40+R(i+2)*30))%H;c.save();c.translate(x,y);c.rotate(t*2+i);c.fillStyle=['#e8962f','#d9531e','#f2c94c'][i%3];c.beginPath();c.ellipse(0,0,6,3,0,0,7);c.fill();c.restore()}}
+  if(clear&&(S.time==='mor'||S.time==='day')&&S.season!=='win'){c.strokeStyle='#2b2b3a';c.lineWidth=2;for(let i=0;i<5;i++){const x=((t*40+i*55+R(i)*80)%(W+200))-100,y=H*.25+i*14+Math.sin(t*3+i)*5,w=8+Math.sin(t*8+i)*3;c.beginPath();c.moveTo(x-10,y-w*.6);c.quadraticCurveTo(x-5,y-2,x,y);c.quadraticCurveTo(x+5,y-2,x+10,y-w*.6);c.stroke()}}
+  // weather particles
+  if(S.wx==='rain'){c.strokeStyle='rgba(210,225,255,.65)';c.lineWidth=1.6;for(let i=0;i<170;i++){const x=(R(i)*W*1.2+t*120)%(W*1.2)-W*.1,y=(R(i+500)*H+t*(650+R(i+3)*200))%H;c.beginPath();c.moveTo(x,y);c.lineTo(x-6,y+18);c.stroke()}}
+  if(S.wx==='snow'){c.fillStyle='rgba(255,255,255,.92)';for(let i=0;i<150;i++){const sp2=.5+R(i+2);const x=((R(i)*W+Math.sin(t*1.2+i)*18+t*14*sp2)%W+W)%W,y=(R(i+700)*H+t*45*sp2)%H;c.beginPath();c.arc(x,y,1.4+R(i+5)*2.6,0,7);c.fill()}}
+  if(S.wx==='dust'){c.fillStyle='rgba(184,145,90,.32)';c.fillRect(0,0,W,H);c.fillStyle='rgba(120,85,45,.55)';for(let i=0;i<160;i++){const x=(R(i)*W+t*420*(.5+R(i+1)))%W,y=R(i+900)*H;c.fillRect(x,y,4+R(i+2)*8,1.6)}}
+  if(night){c.fillStyle='rgba(5,10,30,.18)';c.fillRect(0,0,W,H)}
+}
+
+/* ================= Slides / Nav ================= */
+const slides=[...document.querySelectorAll('.slide')];const dots=$('dots');let cur=0;
+slides.forEach((s,i)=>{const b=document.createElement('button');b.className='dot';b.textContent=i+1;b.title=s.dataset.name;b.onclick=()=>go(i);dots.appendChild(b)});
+function go(i){
+  cur=Math.max(0,Math.min(slides.length-1,i));
+  slides.forEach((s,j)=>s.classList.toggle('active',j===cur));
+  [...dots.children].forEach((d,j)=>{d.classList.toggle('on',j===cur);d.classList.toggle('done',j<cur)});
+  const s=slides[cur],st=+s.dataset.step;
+  $('stageName').textContent=s.dataset.name;$('slideNo').textContent=(cur+1)+'/'+slides.length;
+  document.querySelectorAll('#steps span').forEach(p=>{const n=+p.dataset.s;p.classList.toggle('on',n===st);p.classList.toggle('done',n<st)});
+  $('tnList').innerHTML='<li>⏱ Зөвлөмж хугацаа: ≈'+s.dataset.min+' мин</li>'+s.dataset.notes.split('|').map(t=>'<li>'+t+'</li>').join('');
+  $('prevBtn').disabled=cur===0;$('nextBtn').textContent=cur===slides.length-1?'🏁 Төгсгөл':'Дараах ▶';
+  if(s.contains($('rwText'))){renderBasket();renderNewEnv();loadGroup()}
+  if(s.contains($('cmpB')))renderCompare();
+}
+$('prevBtn').onclick=()=>go(cur-1);$('nextBtn').onclick=()=>{if(cur===slides.length-1)confetti(120);else go(cur+1)};
+document.addEventListener('keydown',e=>{
+  if(e.target.isContentEditable||e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
+  if(e.key==='ArrowRight'||e.key==='PageDown')go(cur+1);
+  else if(e.key==='ArrowLeft'||e.key==='PageUp')go(cur-1);
+  else if(e.key==='f'||e.key==='F')toggleFS();
+  else if(e.key==='n'||e.key==='N')toggleNotes();
+});
+function toggleFS(){if(!document.fullscreenElement){if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen()}else if(document.exitFullscreen)document.exitFullscreen()}
+function toggleNotes(){$('tnotes').classList.toggle('show')}
+$('fsBtn').onclick=toggleFS;$('notesBtn').onclick=toggleNotes;
+
+/* ---------- Timer ---------- */
+let remain=40*60,running=false,tick=null;
+function drawT(){const a=Math.abs(remain),m=Math.floor(a/60),s=a%60;$('tval').textContent=(remain<0?'+':'')+m+':'+String(s).padStart(2,'0');$('timer').className='timer'+(remain<0?' over':remain<=300?' warn':'')}
+$('tPlay').onclick=()=>{running=!running;$('tPlay').textContent=running?'⏸':'▶';if(running)tick=setInterval(()=>{remain--;drawT()},1000);else clearInterval(tick)};
+$('timer').ondblclick=()=>{remain=40*60;drawT()};drawT();
+
+/* ---------- Editable frames ---------- */
+document.querySelectorAll('[data-k]').forEach(e=>{const k=e.dataset.k;e.textContent=store.get(k)||'';e.addEventListener('input',()=>store.set(k,e.innerText))});
+
+/* ================= 2. Window ================= */
+const WIN_S={season:'sum',time:'mor',place:'cnt',wx:'clr'};let winFocus=null;
+const FOCUS={time:[.16,.42,60],place:[.62,.6,90],wx:[.4,.18,90],sound:[.26,.84,90],smell:[.64,.36,60]};
+document.querySelectorAll('#qcards .qc').forEach(b=>b.onclick=()=>{b.classList.toggle('open');winFocus=b.classList.contains('open')?b.dataset.f:null;
+  if(document.querySelectorAll('#qcards .qc.open').length===5)confetti(50)});
+
+/* ================= 3. Reading ================= */
+const PRED=[{k:'place',nm:'📍 Хаана?',o:['⛰️ Ууланд','🌊 Далайд','🏙️ Хотод','🌾 Хөдөө хээр'],ok:[3]},
+  {k:'season',nm:'🗓 Улирал?',o:['❄️ Өвөл','🌱 Хавар','☀️ Зун','🍂 Намар'],ok:[0]},
+  {k:'time',nm:'🕐 Хэдийд?',o:['🌅 Өглөө','🌞 Өдөр','🌇 Орой','🌙 Шөнө'],ok:[1,2,3]}];
+const predSel=jget('eo_pred',{});
+function renderPred(check){$('pred').innerHTML=PRED.map(r=>`<div class="prow"><span>${r.nm}</span><div class="chips">${r.o.map((o,i)=>{let cl='chip';if(predSel[r.k]===i)cl+=' on';if(check&&predSel[r.k]===i)cl+=r.ok.includes(i)?' ok':' no';if(check&&r.ok.includes(i)&&predSel[r.k]!==i)cl+=' ok';return `<button class="${cl}" data-r="${r.k}" data-i="${i}">${o}</button>`}).join('')}</div></div>`).join('');
+  $('pred').querySelectorAll('.chip').forEach(b=>b.onclick=()=>{predSel[b.dataset.r]=+b.dataset.i;jset('eo_pred',predSel);renderPred(false);$('predFb').textContent=''})}
+renderPred(false);
+$('predChk').onclick=()=>{const fb=$('predFb');if(Object.keys(predSel).length<3){fb.className='feedback no';fb.textContent='☝️ Эхлээд 3 мөр бүрээс нэгийг сонго.';return}
+  if(seen.size<5){fb.className='feedback no';fb.textContent='📖 Эхлээд өгүүллэгийг уншаад 5 хэсгийг бүгдийг үзээрэй ('+seen.size+'/5).';return}
+  renderPred(true);const n=PRED.filter(r=>r.ok.includes(predSel[r.k])).length;fb.className='feedback ok';
+  fb.textContent=n===3?'🎯 Таамаглал бүрэн таарлаа: өвлийн хөдөө хээр, өдрөөс шөнө хүртэл!':`✔ ${n}/3 таарлаа. Ногоон нь зөв хариулт — өвөл, хөдөө хээрт болсон.`;if(n===3)confetti(60)};
+const PARTS=[
+ {n:'I',t:'Өвлийн өдөр',bg:'linear-gradient(#bfe3ff,#ffffff)',fg:'#1f3a5a',p:'Хахир хүйтэн өвлийн нэгэн өдөр. Цасанд хучигдсан Баянбулагийн өргөн тал дунд ганц гэр харагдана. Гэрийн эзэн Дамдин багийн төв рүү мордсон.',e:['Хөдөө, Баянбулагийн тал','Өвөл, өдөр','Тачигнасан хүйтэн, цэлмэг, салхигүй']},
+ {n:'II',t:'Гэртээ',bg:'linear-gradient(#f6e6c6,#efd7a8)',fg:'#4f331b',p:'Зургаан настай Ичинхорлоо гэртээ хурганы уут, элгэвч оёж сууна. Ээж нь тэнгэр муудах шинжтэйг анзаараад үхрээ хайхаар гарахдаа охиндоо хонио хотлуулахыг захив.',e:['Гэрийн дотор','Мөн өдөр, аав нь оройтож ирнэ','Тэнгэр муудах шинжтэй']},
+ {n:'III',t:'Тэнгэр муухайрч эхэлсэн нь',bg:'linear-gradient(#9aa5b4,#6f7b8b)',fg:'#fff',p:'Тэнгэр бүрхэж цас орж эхлэхэд охин хонио арай гэж хотлуулав. Салхи ширүүсч, гэр нажигнан, шуурга тавив. Гэтэл хонь нь хорооноосоо гарч шуургыг дагаад уруудахад охин дулаан хувцаслаад хойноос нь гүйв.',e:['Гэр, хот → задгай тал','Орой, харанхуй болов','Цасан шуурга ширүүсэв']},
+ {n:'IV',t:'Шуурганаар',bg:'linear-gradient(#3a4252,#1d2230)',fg:'#fff',p:'Охин шөнөжин хонины хойноос явав. Ядарч суугаагаараа унтчихахад эрх улаан ямаа нь мөргөж, хүрмээс нь татаж сэрээв. Хамар нь хөлдөхөд халуун гараар биш, цасаар үрэх ёстойг санав.',e:['Задгай тал хээр','Шөнө → үүр цайх','Ширүүн шуурга, тачигнасан хүйтэн']},
+ {n:'V',t:'Хоёр өдрийн дараа',bg:'linear-gradient(#e9f6ff,#fff7d6)',fg:'#1f3a5a',p:'Шуурга намдаж, тэнгэр цэлмэв. Ичинхорлоо сүргээ бүрэн авч нуурын хөвөөнд хүрэхэд аав нь хүмүүстэй хайж давхин ирэв. Охин тэднийг «дайсныг ялсан баатар шиг» угтав.',e:['Нуурын хөвөө','2 өдрийн дараа','Цэлмэг, цас гялалзана']}];
+const seen=new Set();
+$('tl').innerHTML=PARTS.map((p,i)=>`<button data-i="${i}" style="background:${p.bg};color:${p.fg}">${p.n}<br>${p.t}</button>`).join('');
+$('tl').querySelectorAll('button').forEach(b=>b.onclick=()=>{const i=+b.dataset.i,p=PARTS[i];seen.add(i);
+  $('tl').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));b.classList.add('seen');
+  $('part').innerHTML=`<h3>${p.n}. ${p.t}</h3><p>${p.p}</p><div class="env3"><div><b>📍 Хаана?</b>${p.e[0]}</div><div><b>🕐 Хэзээ?</b>${p.e[1]}</div><div><b>☁️ Цаг агаар?</b>${p.e[2]}</div></div>`+(seen.size===5?'<div class="def g" style="font-size:15px;margin-top:6px">🌟 Орчин <b>цэлмэг → шуурга → цэлмэг</b> гэж өөрчлөгдсөн нь өгүүллэгийг айдастай, дараа нь баяртай болгожээ (х.147).</div>':'')});
+const VOC=[['нэмнээ','хурга, ишгийг хүйтнээс хамгаалж нөмрүүлдэг эсгий'],['нудрах','гэнэт хүчтэй түлхэх'],['ухаа','өндөрхөн, талархаг газар'],['хөрзөн','малын баас хөлдөж тогтсон хөрс'],['тургих','морь мал хамраараа «турр» хийж дуугарах']];
+$('vocab').innerHTML=VOC.map(v=>`<button class="vc">${v[0]}<span> — ${v[1]}</span></button>`).join('');
+$('vocab').querySelectorAll('.vc').forEach(b=>b.onclick=()=>b.classList.toggle('open'));
+
+/* ================= 4. Word hunt ================= */
+const HUNT='[Намрын|t] [сэрүүн|w] [өглөө|t]. [Нар дөнгөж мандаж|t], [уулын оройг|p] [алтан шараар|c] будав. [Голын эрэг дээрх ганц гэрийн|p] яндангаас [аргалын утаа үнэртэнэ|s]. [Хүйтэн салхи|w] [сэр сэр|d] үлээж, [улбар шар|c] навчис [шаржигнан|d] унана. [Хотонд|p] хонь [майлж|d], нохой [хуцна|d]. Бяцхан Сараа [ээжийнхээ чанасан сүүний үнэрийг|s] мэдэрч, [гэр лүүгээ|p] гүйлээ.';
+const HPLAIN=HUNT.replace(/\[([^|\]]+)\|\w+\]/g,'$1');
+const CATS={t:'🕐 Цаг хугацаа',p:'📍 Газар орон',w:'☁️ Цаг агаар',d:'👂 Дуу чимээ',s:'👃 Үнэр',c:'🎨 Өнгө'};
+function huntTokens(){const out=[];HUNT.replace(/\[([^|\]]+)\|(\w)\]|([^\s\[]+)|(\s+)/g,(m,a,cat,w,sp)=>{if(a)out.push({t:a,c:cat});else if(w)out.push({t:w,c:''});else out.push({sp:m});return m});return out}
+function huntHTML(all){return huntTokens().map(o=>o.sp?o.sp:(o.c&&all?`<span class="k-${o.c}">${esc(o.t)}</span>`:esc(o.t))).join('')}
+let brush=null;const totals={};huntTokens().forEach(o=>{if(o.c)totals[o.c]=(totals[o.c]||0)+1});
+const TOTAL=Object.values(totals).reduce((a,b)=>a+b,0);$('huntT').textContent=TOTAL;
+function renderBrushes(){const f={};document.querySelectorAll('#hunt .w.found').forEach(w=>{f[w.dataset.c]=(f[w.dataset.c]||0)+1});
+  $('brushes').innerHTML=Object.keys(CATS).map(k=>`<button class="brush b-${k}${brush===k?' on':''}" data-c="${k}">${CATS[k]} ${f[k]||0}/${totals[k]}</button>`).join('');
+  $('brushes').querySelectorAll('.brush').forEach(b=>b.onclick=()=>{brush=b.dataset.c;renderBrushes();const fb=$('huntFb');fb.className='feedback';fb.textContent='🖌️ '+CATS[brush]+' бийр сонгогдлоо. Одоо үг дээр дар!'})}
+function buildHunt(){$('hunt').innerHTML=huntTokens().map((o,i)=>o.sp?o.sp:(/[А-Яа-яЁёӨөҮү]/.test(o.t)?`<span class="w" data-c="${o.c}">${esc(o.t)}</span>`:esc(o.t))).join('');
+  $('hunt').querySelectorAll('.w').forEach(w=>w.onclick=()=>{const fb=$('huntFb'),c=w.dataset.c,word=w.textContent.replace(/[.,!?]/g,'');
+    if(w.classList.contains('found'))return;
+    if(!brush){fb.className='feedback no';fb.textContent='🖌️ Эхлээд дээрээс бийрээ сонго.';return}
+    if(!c){w.classList.remove('shake');void w.offsetWidth;w.classList.add('shake');fb.className='feedback no';fb.textContent=`🙅 «${word}» — энэ үг орчныг заахгүй байна.`;return}
+    if(c!==brush){w.classList.remove('shake');void w.offsetWidth;w.classList.add('shake');fb.className='feedback no';fb.textContent=`🤔 «${word}» — орчны үг мөн! Гэхдээ өөр бийрээр будна. Бодоод үз.`;return}
+    w.classList.add('found','k-'+c);fb.className='feedback ok';fb.textContent=`✅ «${word}» — ${CATS[c]}!`;
+    const n=document.querySelectorAll('#hunt .w.found').length;$('huntN').textContent=n;renderBrushes();
+    if(n===TOTAL){fb.textContent='🏆 Бүх '+TOTAL+' орчны хэллэгийг оллоо! Гайхалтай анчид!';confetti(110)}})}
+buildHunt();renderBrushes();
+$('huntAll').onclick=()=>{document.querySelectorAll('#hunt .w').forEach(w=>{if(w.dataset.c)w.classList.add('found','k-'+w.dataset.c)});$('huntN').textContent=TOTAL;renderBrushes()};
+$('huntReset').onclick=()=>{brush=null;buildHunt();$('huntN').textContent=0;renderBrushes();$('huntFb').className='feedback';$('huntFb').textContent='🖌️ Эхлээд бийрээ сонгоод, үг дээр дар.'};
+
+/* ================= 5. Senses wheel ================= */
+const SENSES=[
+ {k:'see',ic:'👀',nm:'Харах',col:'#e07b00',q:'Шуурган дунд Ичинхорлоод юу харагдсан бэ?',h:'хав харанхуй, цасан будан, хонины бараа, тэнгэр газар нийлсэн мэт…'},
+ {k:'hear',ic:'👂',nm:'Сонсох',col:'#8b3fd6',q:'Ямар дуу чимээ сонсогдсон бэ?',h:'салхи исгэрэх, хонь майлах, ямааны дуу, охины хашхирах чимээ…'},
+ {k:'smell',ic:'👃',nm:'Үнэрлэх',col:'#d63384',q:'Ямар үнэр үнэртсэн байж болох вэ?',h:'цасны хүйтэн цэнгэг үнэр, хонины нойтон ноосны үнэр…'},
+ {k:'touch',ic:'✋',nm:'Мэдрэх',col:'#a0522d',q:'Бие нь юуг мэдэрсэн бэ?',h:'тачигнасан хүйтэн, хамар нь часхийх, цас нүүр лүү цохих, ядарч сульдах…'},
+ {k:'taste',ic:'👅',nm:'Амтлах',col:'#dc2626',q:'Ам нь ямар амт мэдэрсэн бэ?',h:'ам цангаж, цас үмхэхэд хүйтэн, усан амт…'}];
+(function buildWheel(){const g=$('wheelG');let h='';const cx=150,cy=150,r=140;
+  SENSES.forEach((s,i)=>{const a0=(-90-36+i*72)*Math.PI/180,a1=(-90+36+i*72)*Math.PI/180,am=(-90+i*72)*Math.PI/180;
+    h+=`<path data-i="${i}" d="M${cx} ${cy} L${cx+r*Math.cos(a0)} ${cy+r*Math.sin(a0)} A${r} ${r} 0 0 1 ${cx+r*Math.cos(a1)} ${cy+r*Math.sin(a1)}Z" fill="${s.col}" stroke="#fffaf0" stroke-width="4" style="cursor:pointer"/>`;
+    const tx=cx+92*Math.cos(am),ty=cy+92*Math.sin(am);h+=`<text x="${tx}" y="${ty-4}" text-anchor="middle" font-size="34" style="pointer-events:none">${s.ic}</text><text x="${tx}" y="${ty+24}" text-anchor="middle" font-size="15" font-weight="800" fill="#fff" style="pointer-events:none">${s.nm}</text>`});
+  h+=`<circle cx="150" cy="150" r="141" fill="none" stroke="#8a6420" stroke-width="5"/>`;g.innerHTML=h;
+  g.querySelectorAll('path').forEach(p=>p.onclick=()=>pickSense(+p.dataset.i))})();
+const senseVals=jget('eo_senses',{});
+$('senses').innerHTML=SENSES.map((s,i)=>`<div class="sense" id="sn${i}"><span class="nm">${s.ic} ${s.nm}</span><input data-i="${i}" value="${esc(senseVals[s.k]||'')}" placeholder="${s.q}"><span class="hint">💡 ${s.h}</span></div>`).join('');
+function senseCheck(){let n=0;$('senses').querySelectorAll('input').forEach(inp=>{const ok=inp.value.trim().length>=3;inp.classList.toggle('ok',ok);if(ok)n++});return n}
+let senseDone=senseCheck()===5;
+$('senses').querySelectorAll('input').forEach(inp=>{inp.addEventListener('input',()=>{senseVals[SENSES[+inp.dataset.i].k]=inp.value;jset('eo_senses',senseVals);const n=senseCheck();const fb=$('senseFb');
+  if(n===5){fb.className='feedback ok';fb.textContent='🌟 5 мэдрэхүй бүгд бөглөгдлөө! Одоо шуургыг бүх биеэрээ мэдэрч байна.';if(!senseDone){senseDone=true;confetti(80)}}else{fb.className='feedback';fb.textContent=`✍️ ${n}/5 мэдрэхүй бөглөгдсөн.`}});
+  inp.addEventListener('focus',()=>markSense(+inp.dataset.i))});
+function markSense(i){SENSES.forEach((s,j)=>$('sn'+j).classList.toggle('on',j===i))}
+function pickSense(i){markSense(i);const s=SENSES[i],fb=$('senseFb');fb.className='feedback ok';fb.textContent=`🎯 ${s.ic} ${s.nm}! — ${s.q}`;const inp=$('sn'+i).querySelector('input');inp.focus({preventScroll:true})}
+let wheelRot=0,spinning=false;
+$('spin').onclick=()=>{if(spinning)return;spinning=true;const i=Math.floor(Math.random()*5);const cur360=((wheelRot%360)+360)%360;let delta=((360-i*72)-cur360+720)%360;wheelRot+=360*4+delta;$('wheelG').style.transform=`rotate(${wheelRot}deg)`;$('senseFb').className='feedback';$('senseFb').textContent='🎡 Эргэж байна…';
+  setTimeout(()=>{spinning=false;pickSense(i)},2700)};
+$('hintBtn').onclick=()=>{$('senseCard').classList.toggle('showhints');$('hintBtn').classList.toggle('on')};
+
+/* ================= 6. Machine ================= */
+const DIALS=[{k:'season',nm:'Улирал',o:[['win','❄️ Өвөл'],['spr','🌱 Хавар'],['sum','☀️ Зун'],['aut','🍂 Намар']]},
+ {k:'time',nm:'Өдрийн цаг',o:[['mor','🌅 Өглөө'],['day','🌞 Өдөр'],['eve','🌇 Орой'],['nig','🌙 Шөнө']]},
+ {k:'place',nm:'Газар орон',o:[['cnt','🌾 Хөдөө тал'],['city','🏙️ Хот'],['mtn','⛰️ Уул'],['lake','🌊 Нуур']]},
+ {k:'wx',nm:'Цаг агаар',o:[['clr','☀️ Цэлмэг'],['rain','🌧️ Бороо'],['snow','🌨️ Цас'],['dust','🌪️ Шороо']]}];
+const VOCAB={win:['идэр есийн хүйтэн','цасан хөнжил','хяруу цагаан','ам уур савсана'],spr:['ногоо цухуйна','цас хайлна','шувуу буцаж ирнэ','зөөлөн дулаахан'],sum:['халуун илч','номин ногоон','голио царцаа дуугарна','сэвшээ салхи'],aut:['шаргал навч','сэрүүн салхи','хадлан','шувууд урагшаа нисэнэ'],
+ mor:['нар мандана','үүр цайна','шүүдэр гялалзана','өглөөний сэрүүн'],day:['үдийн нар','нар төөнөнө','тод гэгээтэй','богино сүүдэр'],eve:['нар жаргана','улбар шар туяа','бүрэнхий','сүүдэр уртсана'],nig:['харанхуй шөнө','сар гэрэлтэнэ','од түгэлдэнэ','нам гүм'],
+ cnt:['өргөн тал','ганц гэр','аргалын утаа','мал бэлчинэ'],city:['өндөр байшин','машины дуу','гэрэлтэй цонх','хотын гудамж'],mtn:['хад асга','нарсан ой','уулын орой','цуурай'],lake:['нуурын эрэг','долгион шаршина','цэнгэг ус','цахлай донгодно'],
+ clr:['цэлмэг тэнгэр','нар гийнэ','салхигүй','тунгалаг агаар'],rain:['бороо шиврэнэ','шалба норно','аянга нижигнэнэ','чийгтэй шорооны үнэр'],snow:['цас будран орно','цас шаржигнана','хүйтэн жавар','цасан ширхэг'],dust:['шороон шуурга','нүд нээх аргагүй','салхи исгэрнэ','тоос манарна']};
+const PH={season:{win:'Өвлийн',spr:'Хаврын',sum:'Зуны',aut:'Намрын'},time:{mor:'өглөө',day:'өдөр',eve:'орой',nig:'шөнө'},place:{cnt:'хөдөө өргөн талд',city:'хотын гудамжинд',mtn:'уулын бэлд',lake:'нуурын эрэг дээр'},wx:{clr:'тэнгэр цэлмэг байна',rain:'бороо орж байна',snow:'цас орж байна',dust:'шороон шуурга шуурч байна'}};
+const OPTSTEM={win:['өвөл','өвл'],spr:['хавар','хавр'],sum:['зун'],aut:['намар','намр'],mor:['өглөө','үүр'],day:['өдөр','өдр','үд'],eve:['орой','үдэш','бүрэнхий','жарга'],nig:['шөнө','харанхуй','сар','од'],
+ cnt:['тал','хөдөө','хээр','гэр','мал'],city:['хот','гудамж','байшин','машин'],mtn:['уул','ой','хад','нарс'],lake:['нуур','далай','долгион','эрэг'],clr:['цэлмэг','нар','тунгалаг'],rain:['бороо','шивр','нор','аянга'],snow:['цас','жавар','хяруу'],dust:['шороо','тоос','шуурга']};
+const MS=Object.assign({season:'aut',time:'mor',place:'cnt',wx:'clr'},jget('eo_machine',{}));
+let basket=jget('eo_basket',[]);
+const ANG=[-135,-45,45,135];
+$('dials').innerHTML=DIALS.map(d=>`<div class="dial" data-k="${d.k}"><span class="lab">${d.nm}</span><svg viewBox="0 0 60 60" title="Эргүүлэх"><circle cx="30" cy="30" r="27" fill="url(#brassG)" stroke="#5a3d16" stroke-width="2"/>${ANG.map(a=>`<circle cx="${30+24*Math.cos((a-90)*Math.PI/180)}" cy="${30+24*Math.sin((a-90)*Math.PI/180)}" r="1.8" fill="#3d2810"/>`).join('')}<g class="ptrg"><rect x="27.5" y="8" width="5" height="20" rx="2.5" fill="#3d2810"/></g><circle cx="30" cy="30" r="6" fill="#3d2810"/></svg><div class="opts">${d.o.map(o=>`<button data-v="${o[0]}">${o[1]}</button>`).join('')}</div></div>`).join('');
+document.querySelectorAll('#dials .dial').forEach(dl=>{const k=dl.dataset.k,d=DIALS.find(x=>x.k===k);
+  dl.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>setDial(k,b.dataset.v));
+  dl.querySelector('svg').onclick=()=>{const i=d.o.findIndex(o=>o[0]===MS[k]);setDial(k,d.o[(i+1)%4][0])}});
+function setDial(k,v){MS[k]=v;jset('eo_machine',MS);const f=$('machFrame');f.classList.remove('whirr');void f.offsetWidth;f.classList.add('whirr');renderMachine()}
+function renderMachine(){
+  document.querySelectorAll('#dials .dial').forEach(dl=>{const k=dl.dataset.k,d=DIALS.find(x=>x.k===k),i=d.o.findIndex(o=>o[0]===MS[k]);
+    dl.querySelector('.ptrg').style.transform=`rotate(${ANG[i]}deg)`;dl.querySelectorAll('.opts button').forEach(b=>b.classList.toggle('on',b.dataset.v===MS[k]))});
+  let warn='';if(MS.season==='sum'&&MS.wx==='snow')warn='🤔 Зун цас орох нь ховор — гэхдээ өндөр ууланд тохиолддог!';else if(MS.season==='win'&&MS.wx==='rain')warn='🤔 Өвөл бороо ордог уу? Ихэвчлэн цас ордог шүү.';else if(MS.place==='lake'&&MS.season==='win')warn='❄️ Өвөл нуур хөлдөж мөс болдог.';
+  $('mOut').innerHTML='🖼️ '+envSentence()+(warn?`<span class="warn">${warn}</span>`:'');
+  $('vchips').innerHTML=['season','time','place','wx'].flatMap(k=>VOCAB[MS[k]]).map(w=>`<button class="vchip${basket.includes(w)?' in':''}" data-w="${w}">${basket.includes(w)?'✓ ':'+ '}${w}</button>`).join('');
+  $('vchips').querySelectorAll('.vchip').forEach(b=>b.onclick=()=>{const w=b.dataset.w;if(basket.includes(w))basket=basket.filter(x=>x!==w);else basket.push(w);jset('eo_basket',basket);b.classList.toggle('in');b.textContent=(basket.includes(w)?'✓ ':'+ ')+w;$('bCount').textContent=basket.length});
+  $('bCount').textContent=basket.length;
+  const sk=skyCols(MS),hc=HILL[MS.season].map(h=>landCol(MS,h)),rs=document.documentElement.style;
+  rs.setProperty('--sky1',mix(sk[0],'#ffffff',.15));rs.setProperty('--sky2',mix(sk[1],'#ffffff',.25));rs.setProperty('--h1',hc[0]);rs.setProperty('--h2',hc[1]);rs.setProperty('--h3',hc[2]);
+}
+function envSentence(){return `${PH.season[MS.season]} ${PH.time[MS.time]}, ${PH.place[MS.place]} ${PH.wx[MS.wx]}.`}
+$('mRand').onclick=()=>{DIALS.forEach(d=>{MS[d.k]=d.o[Math.floor(Math.random()*4)][0]});setDial('season',MS.season)};
+renderMachine();
+
+/* ================= 7. Rewrite editor ================= */
+const DICT={
+ t:['өглөө','өдөр','өдрийн','орой','шөнө','үд','үүр','өвөл','өвл','хавар','хавр','зун','намар','намр','бүрэнхий','мандаж','мандана','жаргаж','жаргана','=сар','сарын','маргааш','өчигдөр','өнөөдөр'],
+ p:['хот','гудамж','байшин','=байр','уул','нуур','далай','гол','=тал','талд','талын','тал руу','=гэр','гэрийн','гэрт','гэрээс','гэр лүү','сургууль','=ой','ойд','ойн','ойгоор','цэцэрлэг','хээр','хөдөө','эрэг','зам','талбай','гүүр','хашаа','толгод','говь','нутаг','дэлгүүр','=хад','хадан','хотон','худаг','бэл','орой дээр','хөвөө'],
+ w:['бороо','цас','салхи','салхин','шуурга','шуур','хүйтэн','хүйтэр','халуун','дулаан','сэрүүн','үүл','=нар','нарны','нарлаг','нартай','цэлмэг','манан','шороо','аянга','солонго','хяруу','мөндөр','жавар','тэнгэр','=хур','хурын','шивр','будра','бүрхэг','бүрхэ','тоос','тунгалаг','чийглэг'],
+ d:['сонсогд','дуу','чимээ','шуугиа','шуугин','шуугил','жиргэ','жиргээ','хуца','хуцна','майла','майлж','исгэр','шаржигн','шаршин','нижигн','дүнгэн','хангин','шивнэ','донгод','хүржигн','тачигн','нүргэл','нажигн','гангар','инээ','хашхир','дуул','хөгжим','дохио','шажигн','цуурай','=сэр','бужигн','цуурхал','чимээгүй','нам гүм'],
+ s:['үнэр','анхил','ханхал','сэнгэн'],
+ ta:['амт','чихэр','исгэлэн','давс','гашуун','цанга','=ам','амандаа'],
+ to:['мэдрэгд','мэдэр','мэдрэ','зөөлөн','нойтон','норж','норо','норсон','чийг','даар','бүлээн','хорсо','хатуу','ширүүн','илч','төөнө','жихүүн','хөлдө','сэвшээ','хүйт','халуу','дулаа','сэрүү','бээр'],
+ c:['харагд','=хар','харанхуй','цагаан','=шар','шаргал','шараар','улаан','ногоон','ногоор','хөх','цэнхэр','номин','саарал','алтан','мөнгөн','гялалз','гялтга','гэрэл','гэгээ','өнгө','=бор','борог','ягаан','улбар','туяа','=тод','сүүдэр','цайвар','бараан','гялбаа','харлан']};
+const HL_ORDER=['t','p','w','d','s','ta','to','c'];
+const WRE=/[А-Яа-яЁёӨөҮү]+/g;
+function stemHit(lw,st){return st[0]==='='?lw===st.slice(1):lw.startsWith(st)}
+function catsOf(word){const lw=word.toLowerCase();return HL_ORDER.filter(k=>DICT[k].some(st=>!st.includes(' ')&&stemHit(lw,st)))}
+function hlHTML(text){return esc(text).replace(WRE,m=>{const c=catsOf(m);return c.length?`<mark class="m-${c[0]}">${m}</mark>`:m})}
+function analyze(text){const found=new Set();let n=0;(text.match(WRE)||[]).forEach(w=>{const c=catsOf(w);if(c.length){n++;c.forEach(x=>found.add(x))}});return{found,n}}
+let group=+(store.get('eo_group')||1);
+const GNAME=['','🌸 1-р бүлэг','☀️ 2-р бүлэг','🍂 3-р бүлэг','❄️ 4-р бүлэг'];
+function renderTabs(id,onPick){$(id).innerHTML=[1,2,3,4].map(g=>`<button data-g="${g}" class="${g===group?'on':''}">${GNAME[g]}</button>`).join('');
+  $(id).querySelectorAll('button').forEach(b=>b.onclick=()=>{group=+b.dataset.g;store.set('eo_group',group);renderTabs(id,onPick);onPick()})}
+const ed=$('rwText'),back=$('rwBack');
+$('orig7').innerHTML=huntHTML(true);
+function renderNewEnv(){$('newEnv').innerHTML='⚙️ <b>Шинэ орчин (машинаас):</b> '+envSentence()}
+function renderBasket(){  if(!basket.length){$('basket').innerHTML='<span class="muted" style="font-size:15px">Сагс хоосон — «Орчин өөрчлөгч машин» слайдаас үг нэмээрэй.</span>';return}
+  $('basket').innerHTML=basket.map(w=>`<button data-w="${esc(w)}">${esc(w)}</button>`).join('');
+  $('basket').querySelectorAll('button').forEach(b=>b.onclick=()=>{const w=b.dataset.w,s=ed.selectionStart,e=ed.selectionEnd;const pre=ed.value.slice(0,s);const ins=(pre&&!/\s$/.test(pre)?' ':'')+w+' ';ed.setRangeText(ins,s,e,'end');ed.focus();onEdit()})}
+function loadGroup(){renderTabs('gtabs7',loadGroup);ed.value=store.get('eo_rw_'+group)||'';onEdit(true)}
+let checksDone=false;
+function onEdit(silent){store.set('eo_rw_'+group,ed.value);back.innerHTML=hlHTML(ed.value)+'\n';back.scrollTop=ed.scrollTop;
+  const {found}=analyze(ed.value);const lw=(ed.value.toLowerCase().match(WRE)||[]);
+  const senses=['c','d','s','to','ta'].filter(k=>found.has(k)).length;
+  const mm=['season','time','place','wx'].filter(k=>OPTSTEM[MS[k]].some(st=>lw.some(w=>w.startsWith(st)))).length;
+  const items=[[found.has('t'),'🕐 Цаг хугацаа заасан'],[found.has('p'),'📍 Газар орноо нэрлэсэн'],[found.has('w'),'☁️ Цаг агаарыг дүрсэлсэн'],[senses>=2,`🖐 2+ мэдрэхүй (${senses}/5)`],[mm===4,`⚙️ Машины шинэ орчин (${mm}/4)`],[ed.value.split(/[.!?]+/).filter(x=>x.trim().length>3).length>=3,'✏️ 3+ өгүүлбэр']];
+  $('checks').innerHTML=items.map(i=>`<li class="${i[0]?'ok':''}">${i[1]}</li>`).join('');
+  const all=items.every(i=>i[0]);if(all&&!checksDone&&!silent){confetti(90)}checksDone=all}
+ed.addEventListener('input',()=>onEdit());
+ed.addEventListener('scroll',()=>{back.scrollTop=ed.scrollTop});
+
+/* ================= 8. Compare & vote ================= */
+let votes=jget('eo_votes',[0,0,0,0]);
+function renderCompare(){renderTabs('gtabs8',renderCompare);
+  $('cmpA').innerHTML=huntHTML(true);$('cntA').textContent='Орчны үг: '+analyze(HPLAIN).n;
+  const txt=store.get('eo_rw_'+group)||'';const a=analyze(txt);
+  $('cmpB').innerHTML=txt.trim()?hlHTML(txt):'<span class="muted">Энэ бүлэг одоохондоо бичээгүй байна. ✏️ «Өөрчлөн бичих» слайд руу буцаж бичээрэй.</span>';
+  $('cntB').textContent='Орчны үг: '+a.n;renderVotes()}
+function renderVotes(winner){const mx=Math.max(1,...votes);
+  $('votes').innerHTML=[1,2,3,4].map(g=>{const t=(store.get('eo_rw_'+g)||'').trim();return `<div class="vote${winner===g?' win':''}"><b>${GNAME[g]}</b><div class="muted" style="font-size:13px;height:20px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${t?esc(t.slice(0,40))+'…':'—'}</div><div class="n">${votes[g-1]}</div><div class="bar"><i style="width:${votes[g-1]/mx*100}%"></i></div><button class="btn grn sm" data-g="${g}">👍 Санал</button></div>`}).join('');
+  $('votes').querySelectorAll('button').forEach(b=>b.onclick=()=>{votes[+b.dataset.g-1]++;jset('eo_votes',votes);renderVotes();$('voteFb').textContent='👍 '+GNAME[+b.dataset.g]+' +1'})}
+$('winBtn').onclick=()=>{const mx=Math.max(...votes);if(!mx){$('voteFb').textContent='☝️ Эхлээд санал өгөөрэй.';return}const ws=[1,2,3,4].filter(g=>votes[g-1]===mx);renderVotes(ws[0]);
+  $('voteFb').textContent=ws.length>1?'🤝 Тэнцлээ: '+ws.map(g=>GNAME[g]).join(', '):'🏆 Хамгийн тод дүрслэл: '+GNAME[ws[0]]+'!';confetti(130)};
+$('voteReset').onclick=()=>{votes=[0,0,0,0];jset('eo_votes',votes);renderVotes();$('voteFb').textContent=''};
+
+/* ================= 9. My sky ================= */
+let sky=jget('eo_sky',[0,0,0]);
+function renderSky(){document.querySelectorAll('#mysky button').forEach(b=>b.querySelector('.c').textContent=sky[+b.dataset.i])}
+document.querySelectorAll('#mysky button').forEach(b=>{b.onclick=()=>{sky[+b.dataset.i]++;jset('eo_sky',sky);renderSky();if(b.dataset.i==='0')confetti(25)};b.oncontextmenu=e=>{e.preventDefault();sky[+b.dataset.i]=Math.max(0,sky[+b.dataset.i]-1);jset('eo_sky',sky);renderSky()}});
+renderSky();
+
+/* ================= Animation loop ================= */
+const introCv=$('introCv'),ix=introCv.getContext('2d'),winCv=$('winCv'),wx2=winCv.getContext('2d'),machCv=$('machCv'),mx2=machCv.getContext('2d');
+const Q4=[{season:'spr',time:'mor',place:'cnt',wx:'clr'},{season:'sum',time:'day',place:'cnt',wx:'clr'},{season:'aut',time:'eve',place:'cnt',wx:'clr'},{season:'win',time:'nig',place:'cnt',wx:'snow'}];
+function loop(ts){const t=ts/1000,s=slides[cur];
+  if(s.contains(introCv)){Q4.forEach((S,i)=>{ix.save();ix.translate((i%2)*480,Math.floor(i/2)*270);ix.beginPath();ix.rect(0,0,480,270);ix.clip();ix.scale(.5,.5);drawScene(ix,960,540,S,t+i*3);ix.restore()})}
+  if(s.contains(winCv)){drawScene(wx2,960,540,WIN_S,t);if(winFocus){const f=FOCUS[winFocus],r=f[2]+Math.sin(t*4)*8;wx2.strokeStyle='#ffd25a';wx2.lineWidth=5;wx2.setLineDash([12,8]);wx2.lineDashOffset=-t*30;wx2.beginPath();wx2.arc(f[0]*960,f[1]*540,r,0,7);wx2.stroke();wx2.setLineDash([])}}
+  if(s.contains(machCv))drawScene(mx2,960,540,MS,t);
+  requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+
+/* ================= Confetti (leaves & snowflakes) ================= */
+const cf=$('confetti'),cfx=cf.getContext('2d');let parts=[],cRun=false;
+function confetti(n){cf.width=innerWidth;cf.height=innerHeight;const cols=['#e8962f','#d9531e','#f2c94c','#7cc456','#2f6fdc','#c9973a','#d63384'];
+  for(let i=0;i<n;i++)parts.push({x:innerWidth/2+rnd(-180,180),y:innerHeight*.45,vx:rnd(-7,7),vy:-rnd(4,17),s:rnd(6,11),c:cols[i%7],r:rnd(0,6),life:130,k:i%3});
+  if(!cRun){cRun=true;requestAnimationFrame(cStep)}}
+function cStep(){cfx.clearRect(0,0,cf.width,cf.height);parts.forEach(p=>{p.vy+=.35;p.vx*=.99;p.x+=p.vx+Math.sin(p.life/8);p.y+=p.vy;p.r+=.12;p.life--;cfx.save();cfx.translate(p.x,p.y);cfx.rotate(p.r);cfx.fillStyle=p.c;
+  if(p.k===0){cfx.beginPath();cfx.ellipse(0,0,p.s,p.s/2,0,0,7);cfx.fill()}else if(p.k===1){cfx.fillRect(-p.s/2,-p.s/2,p.s,p.s)}else{cfx.strokeStyle='#ffffff';cfx.lineWidth=2;for(let a=0;a<3;a++){cfx.rotate(Math.PI/3);cfx.beginPath();cfx.moveTo(-p.s,0);cfx.lineTo(p.s,0);cfx.stroke()}}cfx.restore()});
+  parts=parts.filter(p=>p.life>0&&p.y<cf.height+20);if(parts.length)requestAnimationFrame(cStep);else{cRun=false;cfx.clearRect(0,0,cf.width,cf.height)}}
+
+go(0);
+</script>
+</body>
+</html>
